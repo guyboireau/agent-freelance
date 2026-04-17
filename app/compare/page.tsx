@@ -8,8 +8,8 @@ type ModelResult =
   | { success: false; error: string }
 
 type CompareResult = {
-  claude: ModelResult
-  gpt4o: ModelResult
+  sonnet: ModelResult
+  haiku: ModelResult
   elapsed_ms: number
 }
 
@@ -29,14 +29,14 @@ export default function ComparePage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<CompareResult | null>(null)
   const [error, setError] = useState('')
-  const [ratings, setRatings] = useState<{ claude: Rating; gpt4o: Rating }>({ claude: {}, gpt4o: {} })
+  const [ratings, setRatings] = useState<{ sonnet: Rating; haiku: Rating }>({ sonnet: {}, haiku: {} })
 
   async function compare() {
     if (!text.trim()) return
     setLoading(true)
     setError('')
     setResult(null)
-    setRatings({ claude: {}, gpt4o: {} })
+    setRatings({ sonnet: {}, haiku: {} })
 
     const res = await fetch('/api/brief/compare', {
       method: 'POST',
@@ -54,14 +54,14 @@ export default function ComparePage() {
     setLoading(false)
   }
 
-  function rate(model: 'claude' | 'gpt4o', criterion: string, value: 1 | 2 | 3 | 4 | 5) {
+  function rate(model: 'sonnet' | 'haiku', criterion: string, value: 1 | 2 | 3 | 4 | 5) {
     setRatings((prev) => ({
       ...prev,
       [model]: { ...prev[model], [criterion]: value },
     }))
   }
 
-  function score(model: 'claude' | 'gpt4o') {
+  function score(model: 'sonnet' | 'haiku') {
     const r = ratings[model]
     const vals = Object.values(r)
     if (!vals.length) return null
@@ -72,7 +72,7 @@ export default function ComparePage() {
     <div className="p-8 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1">Comparaison de modèles</h1>
-        <p className="text-zinc-500 text-sm">Claude Sonnet vs GPT-4o — même brief, même prompt, résultats côte à côte</p>
+        <p className="text-zinc-500 text-sm">Claude Sonnet vs Claude Haiku — même brief, même prompt, résultats côte à côte</p>
       </div>
 
       <textarea
@@ -99,14 +99,14 @@ export default function ComparePage() {
           </p>
 
           <div className="grid grid-cols-2 gap-6">
-            {(['claude', 'gpt4o'] as const).map((model) => {
+            {(['sonnet', 'haiku'] as const).map((model) => {
               const r = result[model]
               const modelScore = score(model)
               return (
                 <div key={model} className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
                   <div className="px-5 py-3 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
                     <span className="font-semibold text-sm">
-                      {model === 'claude' ? 'Claude Sonnet 4.5' : 'GPT-4o'}
+                      {model === 'sonnet' ? 'Claude Sonnet 4.5' : 'Claude Haiku 4.5'}
                     </span>
                     {modelScore && (
                       <span className="text-xs bg-zinc-900 text-white px-2 py-0.5 rounded-full">
@@ -191,12 +191,12 @@ export default function ComparePage() {
           </div>
 
           {/* Verdict */}
-          {score('claude') && score('gpt4o') && (
+          {score('sonnet') && score('haiku') && (
             <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-sm">
               <p className="font-medium mb-1">Verdict</p>
-              {score('claude')! > score('gpt4o')! && <p className="text-zinc-600">Claude remporte ce brief ({score('claude')}/5 vs {score('gpt4o')}/5).</p>}
-              {score('gpt4o')! > score('claude')! && <p className="text-zinc-600">GPT-4o remporte ce brief ({score('gpt4o')}/5 vs {score('claude')}/5).</p>}
-              {score('claude') === score('gpt4o') && <p className="text-zinc-600">Égalité ({score('claude')}/5).</p>}
+              {score('sonnet')! > score('haiku')! && <p className="text-zinc-600">Sonnet remporte ce brief ({score('sonnet')}/5 vs {score('haiku')}/5).</p>}
+              {score('haiku')! > score('sonnet')! && <p className="text-zinc-600">Haiku remporte ce brief — et coûte ~5x moins cher ({score('haiku')}/5 vs {score('sonnet')}/5).</p>}
+              {score('sonnet') === score('haiku') && <p className="text-zinc-600">Égalité ({score('sonnet')}/5) — préfère Haiku pour ce type de brief.</p>}
             </div>
           )}
         </div>

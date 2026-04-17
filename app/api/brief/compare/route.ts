@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
-import { openai } from '@ai-sdk/openai'
 import { z } from 'zod'
 
 const RequestSchema = z.object({
@@ -32,10 +31,9 @@ export async function POST(req: NextRequest) {
 
   const { raw_text } = parsed.data
   const prompt = `Analyse ce brief client :\n\n${raw_text}`
-
   const start = Date.now()
 
-  const [claudeResult, gptResult] = await Promise.allSettled([
+  const [sonnetResult, haikuResult] = await Promise.allSettled([
     generateObject({
       model: anthropic('claude-sonnet-4-5'),
       schema: BriefAnalysisSchema,
@@ -43,22 +41,20 @@ export async function POST(req: NextRequest) {
       prompt,
     }),
     generateObject({
-      model: openai('gpt-4o'),
+      model: anthropic('claude-haiku-4-5-20251001'),
       schema: BriefAnalysisSchema,
       system: SYSTEM_PROMPT,
       prompt,
     }),
   ])
 
-  const totalMs = Date.now() - start
-
   return NextResponse.json({
-    claude: claudeResult.status === 'fulfilled'
-      ? { success: true, analysis: claudeResult.value.object, usage: claudeResult.value.usage }
-      : { success: false, error: String(claudeResult.reason) },
-    gpt4o: gptResult.status === 'fulfilled'
-      ? { success: true, analysis: gptResult.value.object, usage: gptResult.value.usage }
-      : { success: false, error: String(gptResult.reason) },
-    elapsed_ms: totalMs,
+    sonnet: sonnetResult.status === 'fulfilled'
+      ? { success: true, analysis: sonnetResult.value.object, usage: sonnetResult.value.usage }
+      : { success: false, error: String(sonnetResult.reason) },
+    haiku: haikuResult.status === 'fulfilled'
+      ? { success: true, analysis: haikuResult.value.object, usage: haikuResult.value.usage }
+      : { success: false, error: String(haikuResult.reason) },
+    elapsed_ms: Date.now() - start,
   })
 }

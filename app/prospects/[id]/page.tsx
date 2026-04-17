@@ -55,6 +55,8 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
             briefAnalysis={briefAnalysis}
             rawBrief={latestBrief.raw_text}
             existingQuote={quoteState}
+            prospectName={prospect.name}
+            company={prospect.company}
           />
         </section>
       )}

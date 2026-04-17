@@ -20,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <NavLink href="/dashboard">Dashboard</NavLink>
           <NavLink href="/chat">Chat agent</NavLink>
           <NavLink href="/followups">À relancer</NavLink>
+          <NavLink href="/compare">Comparer modèles</NavLink>
         </aside>
         {/* Main */}
         <main className="flex-1 overflow-auto">{children}</main>

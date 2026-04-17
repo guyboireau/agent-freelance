@@ -25,27 +25,46 @@ const STATUS_COLORS: Record<ProspectStatus, string> = {
 
 export default async function Dashboard() {
   const supabase = await createClient()
-  const { data: prospects } = await supabase
-    .from('prospects')
-    .select('*')
-    .not('status', 'in', '("archived")')
-    .order('updated_at', { ascending: false })
+  const [{ data: prospects }, { data: quotes }] = await Promise.all([
+    supabase.from('prospects').select('*').not('status', 'in', '("archived")').order('updated_at', { ascending: false }),
+    supabase.from('quotes').select('total_ht, status'),
+  ])
 
   const active = prospects ?? []
   const wonCount = active.filter((p) => p.status === 'won').length
   const pendingCount = active.filter((p) =>
     ['brief_received', 'quote_sent', 'followup_1', 'followup_2'].includes(p.status)
   ).length
+  const lostCount = active.filter((p) => p.status === 'lost').length
+  const total = active.length
+  const conversionRate = total > 0 ? Math.round((wonCount / total) * 100) : 0
+
+  const acceptedQuotes = (quotes ?? []).filter((q) => q.status === 'accepted')
+  const totalRevenue = acceptedQuotes.reduce((s, q) => s + (q.total_ht ?? 0), 0)
+
+  const stats = [
+    { label: 'Prospects', value: total },
+    { label: 'En cours', value: pendingCount },
+    { label: 'Gagnés', value: wonCount },
+    { label: 'Conversion', value: `${conversionRate}%` },
+    { label: 'CA signé', value: totalRevenue > 0 ? `${totalRevenue.toLocaleString('fr-FR')}€` : '—' },
+  ]
 
   return (
     <div className="p-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-zinc-500 text-sm mt-1">
-            {pendingCount} en cours · {wonCount} gagnés
-          </p>
-        </div>
+      {/* Stats */}
+      <div className="grid grid-cols-5 gap-4 mb-10">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-white border border-zinc-200 rounded-xl px-4 py-4">
+            <p className="text-2xl font-bold">{s.value}</p>
+            <p className="text-xs text-zinc-400 mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold">Prospects</h1>
         <NewProspectForm />
       </div>
 
@@ -63,22 +82,23 @@ export default async function Dashboard() {
             >
               <div>
                 <span className="font-medium text-sm">{p.name}</span>
-                {p.company && (
-                  <span className="text-zinc-400 text-sm ml-2">· {p.company}</span>
-                )}
+                {p.company && <span className="text-zinc-400 text-sm ml-2">· {p.company}</span>}
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-zinc-400">
                   {new Date(p.updated_at).toLocaleDateString('fr-FR')}
                 </span>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[p.status as ProspectStatus]}`}
-                >
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[p.status as ProspectStatus]}`}>
                   {STATUS_LABELS[p.status as ProspectStatus]}
                 </span>
               </div>
             </Link>
           ))}
+          {lostCount > 0 && (
+            <p className="text-xs text-zinc-400 text-center pt-2">
+              {lostCount} prospect{lostCount > 1 ? 's' : ''} perdu{lostCount > 1 ? 's' : ''} non affiché{lostCount > 1 ? 's' : ''}
+            </p>
+          )}
         </div>
       )}
     </div>

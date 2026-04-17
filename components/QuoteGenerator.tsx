@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { BriefAnalysis, QuoteLine } from '@/lib/supabase/types'
+import { downloadQuotePDF } from './QuotePDF'
 
 interface QuoteState {
   lines: QuoteLine[]
@@ -18,12 +19,16 @@ export default function QuoteGenerator({
   briefAnalysis,
   rawBrief,
   existingQuote,
+  prospectName,
+  company,
 }: {
   prospectId: string
   briefId: string
   briefAnalysis: BriefAnalysis
   rawBrief: string
   existingQuote: QuoteState | null
+  prospectName: string
+  company?: string | null
 }) {
   const [quote, setQuote] = useState<QuoteState | null>(existingQuote)
   const [loading, setLoading] = useState(false)
@@ -64,6 +69,23 @@ export default function QuoteGenerator({
         >
           {loading ? 'Génération…' : quote ? 'Regénérer' : 'Générer le devis'}
         </button>
+        {quote && (
+          <button
+            onClick={() => downloadQuotePDF({
+              prospectName,
+              company,
+              lines: quote.lines,
+              total_ht: quote.total_ht,
+              duration_days: quote.duration_days,
+              conditions: quote.conditions,
+              notes: quote.notes,
+              date: new Date().toLocaleDateString('fr-FR'),
+            })}
+            className="px-4 py-2 border border-zinc-200 text-zinc-700 text-sm rounded-lg hover:bg-zinc-50 transition"
+          >
+            Exporter PDF
+          </button>
+        )}
       </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}
 

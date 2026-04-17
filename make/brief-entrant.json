@@ -1,0 +1,107 @@
+{
+  "name": "Brief entrant → Analyse IA → Notification",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gmail:TriggerNewEmail",
+      "version": 1,
+      "parameters": {
+        "folder": "INBOX",
+        "criteria": "ALL",
+        "maxResults": 1,
+        "__IMTCONN__": {
+          "data": { "scoped": "true", "connection": "google" },
+          "label": "⚠️ À connecter : ton compte Gmail"
+        }
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": {
+          "parameters": {
+            "folder": { "label": "Inbox" }
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": false,
+        "useNewZLibDecompression": true
+      },
+      "filter": {
+        "name": "Brief client (objet contient un mot-clé)",
+        "conditions": [
+          [{ "a": "{{1.subject}}", "b": "brief",          "o": "text:contain" }],
+          [{ "a": "{{1.subject}}", "b": "projet",         "o": "text:contain" }],
+          [{ "a": "{{1.subject}}", "b": "site web",       "o": "text:contain" }],
+          [{ "a": "{{1.subject}}", "b": "application",    "o": "text:contain" }],
+          [{ "a": "{{1.subject}}", "b": "devis",          "o": "text:contain" }],
+          [{ "a": "{{1.subject}}", "b": "développement",  "o": "text:contain" }],
+          [{ "a": "{{1.subject}}", "b": "freelance",      "o": "text:contain" }]
+        ]
+      },
+      "mapper": {
+        "url": "https://agent-freelance.vercel.app/api/webhooks/inbound-email",
+        "serializeUrl": false,
+        "method": "post",
+        "headers": [
+          { "name": "Content-Type",      "value": "application/json" },
+          { "name": "x-webhook-secret",  "value": "8801b96dde40e107ebe5d99ac810551db17d6b66bd8d3bf41fa6b33da6221151" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "data": "{\"from_name\": \"{{1.from.name}}\", \"from_email\": \"{{1.from.email}}\", \"subject\": \"{{1.subject}}\", \"body\": \"{{1.body.text}}\"}",
+        "parseResponse": true,
+        "timeout": 60,
+        "followRedirect": true,
+        "rejectUnauthorized": true,
+        "gzip": true
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 }
+      }
+    },
+    {
+      "id": 3,
+      "module": "gmail:ActionSendEmail",
+      "version": 1,
+      "parameters": {
+        "__IMTCONN__": {
+          "data": { "scoped": "true", "connection": "google" },
+          "label": "⚠️ À connecter : ton compte Gmail"
+        }
+      },
+      "mapper": {
+        "to": "boireauguy@gmail.com",
+        "subject": "🔔 Brief de {{1.from.name}} — {{2.data.analysis.project_type}} · {{2.data.analysis.estimated_days}}j · {{2.data.analysis.estimated_ht}}€ HT",
+        "bodyType": "html",
+        "content": "<p><strong>De :</strong> {{1.from.name}} &lt;{{1.from.email}}&gt;<br><strong>Objet :</strong> {{1.subject}}</p><hr><pre>{{2.data.summary_block}}</pre><hr><p><a href=\"{{2.data.prospect_url}}\">→ Ouvrir la fiche prospect</a></p>"
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 }
+      }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "eu1.make.com"
+  }
+}

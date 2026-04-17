@@ -21,6 +21,10 @@ export default function QuoteGenerator({
   existingQuote,
   prospectName,
   company,
+  email,
+  phone,
+  siret,
+  address,
 }: {
   prospectId: string
   briefId: string
@@ -29,6 +33,10 @@ export default function QuoteGenerator({
   existingQuote: QuoteState | null
   prospectName: string
   company?: string | null
+  email?: string | null
+  phone?: string | null
+  siret?: string | null
+  address?: string | null
 }) {
   const [quote, setQuote] = useState<QuoteState | null>(existingQuote)
   const [loading, setLoading] = useState(false)
@@ -74,6 +82,10 @@ export default function QuoteGenerator({
             onClick={() => downloadQuotePDF({
               prospectName,
               company,
+              email,
+              phone,
+              siret,
+              address,
               lines: quote.lines,
               total_ht: quote.total_ht,
               duration_days: quote.duration_days,

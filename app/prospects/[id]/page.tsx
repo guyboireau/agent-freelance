@@ -3,16 +3,20 @@ import { createClient } from '@/lib/supabase/server'
 import BriefAnalyzer from '@/components/BriefAnalyzer'
 import QuoteGenerator from '@/components/QuoteGenerator'
 import ProspectStatusSelect from '@/components/ProspectStatusSelect'
+import ProspectInfoEditor from '@/components/ProspectInfoEditor'
+import EmailGenerator from '@/components/EmailGenerator'
+import DocumentsSection from '@/components/DocumentsSection'
 import type { BriefAnalysis, QuoteLine } from '@/lib/supabase/types'
 
 export default async function ProspectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: prospect }, { data: briefs }, { data: quotes }] = await Promise.all([
+  const [{ data: prospect }, { data: briefs }, { data: quotes }, { data: documents }] = await Promise.all([
     supabase.from('prospects').select('*').eq('id', id).single(),
     supabase.from('briefs').select('*').eq('prospect_id', id).order('created_at', { ascending: false }),
     supabase.from('quotes').select('*').eq('prospect_id', id).order('created_at', { ascending: false }),
+    supabase.from('documents').select('*').eq('prospect_id', id).order('created_at', { ascending: false }),
   ])
 
   if (!prospect) notFound()
@@ -32,20 +36,22 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="p-8 max-w-4xl space-y-8">
+      {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
+        <div className="space-y-2">
           <h1 className="text-2xl font-bold">{prospect.name}</h1>
-          {prospect.company && <p className="text-zinc-500">{prospect.company}</p>}
-          {prospect.email && <p className="text-zinc-400 text-sm">{prospect.email}</p>}
+          <ProspectInfoEditor prospect={prospect} />
         </div>
         <ProspectStatusSelect prospectId={id} currentStatus={prospect.status} />
       </div>
 
+      {/* Brief */}
       <section>
         <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Brief</h2>
         <BriefAnalyzer prospectId={id} existingBrief={latestBrief} />
       </section>
 
+      {/* Devis */}
       {briefAnalysis && latestBrief && (
         <section>
           <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Devis</h2>
@@ -57,9 +63,30 @@ export default async function ProspectPage({ params }: { params: Promise<{ id: s
             existingQuote={quoteState}
             prospectName={prospect.name}
             company={prospect.company}
+            email={prospect.email}
+            phone={prospect.phone}
+            siret={prospect.siret}
+            address={prospect.address}
           />
         </section>
       )}
+
+      {/* Mails */}
+      <section>
+        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Emails</h2>
+        <EmailGenerator
+          prospectName={prospect.name}
+          company={prospect.company}
+          quoteAmount={latestQuote?.total_ht ?? null}
+          projectSummary={briefAnalysis?.summary ?? null}
+        />
+      </section>
+
+      {/* Documents */}
+      <section>
+        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Documents</h2>
+        <DocumentsSection prospectId={id} initialDocuments={documents ?? []} />
+      </section>
     </div>
   )
 }

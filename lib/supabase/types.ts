@@ -16,10 +16,16 @@ export type Database = {
         Update: { analysis?: Json | null; created_at?: string; id?: string; prospect_id?: string; raw_text?: string }
         Relationships: []
       }
+      documents: {
+        Row: { created_at: string; id: string; name: string; prospect_id: string; size_bytes: number | null; storage_path: string; type: string; url: string }
+        Insert: { created_at?: string; id?: string; name: string; prospect_id: string; size_bytes?: number | null; storage_path: string; type?: string; url: string }
+        Update: { created_at?: string; id?: string; name?: string; prospect_id?: string; size_bytes?: number | null; storage_path?: string; type?: string; url?: string }
+        Relationships: []
+      }
       messages: {
-        Row: { content: string; created_at: string; id: string; prospect_id: string | null; role: string; tool_calls: Json | null }
-        Insert: { content: string; created_at?: string; id?: string; prospect_id?: string | null; role: string; tool_calls?: Json | null }
-        Update: { content?: string; created_at?: string; id?: string; prospect_id?: string | null; role?: string; tool_calls?: Json | null }
+        Row: { content: string; created_at: string; id: string; prospect_id: string | null; role: string; thread_id: string | null; tool_calls: Json | null }
+        Insert: { content: string; created_at?: string; id?: string; prospect_id?: string | null; role: string; thread_id?: string | null; tool_calls?: Json | null }
+        Update: { content?: string; created_at?: string; id?: string; prospect_id?: string | null; role?: string; thread_id?: string | null; tool_calls?: Json | null }
         Relationships: []
       }
       past_projects: {
@@ -29,9 +35,9 @@ export type Database = {
         Relationships: []
       }
       prospects: {
-        Row: { company: string | null; created_at: string; email: string | null; id: string; name: string; source: string | null; status: string; updated_at: string }
-        Insert: { company?: string | null; created_at?: string; email?: string | null; id?: string; name: string; source?: string | null; status?: string; updated_at?: string }
-        Update: { company?: string | null; created_at?: string; email?: string | null; id?: string; name?: string; source?: string | null; status?: string; updated_at?: string }
+        Row: { address: string | null; company: string | null; created_at: string; email: string | null; id: string; name: string; phone: string | null; siret: string | null; source: string | null; status: string; updated_at: string }
+        Insert: { address?: string | null; company?: string | null; created_at?: string; email?: string | null; id?: string; name: string; phone?: string | null; siret?: string | null; source?: string | null; status?: string; updated_at?: string }
+        Update: { address?: string | null; company?: string | null; created_at?: string; email?: string | null; id?: string; name?: string; phone?: string | null; siret?: string | null; source?: string | null; status?: string; updated_at?: string }
         Relationships: []
       }
       quotes: {
@@ -53,13 +59,14 @@ export type Database = {
   }
 }
 
-// Domain types
 export type ProspectStatus = 'brief_received' | 'quote_sent' | 'followup_1' | 'followup_2' | 'won' | 'lost' | 'archived'
+export type DocumentType = 'brief' | 'quote' | 'contract' | 'other'
 
 export type Prospect = Database['public']['Tables']['prospects']['Row']
 export type Brief = Database['public']['Tables']['briefs']['Row']
 export type Quote = Database['public']['Tables']['quotes']['Row']
 export type PastProject = Database['public']['Tables']['past_projects']['Row']
+export type Document = Database['public']['Tables']['documents']['Row']
 
 export interface BriefAnalysis {
   project_type: string

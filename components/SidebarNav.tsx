@@ -8,6 +8,7 @@ const NAV = [
   { href: '/chat', label: 'Chat agent', icon: '◎' },
   { href: '/followups', label: 'À relancer', icon: '◷' },
   { href: '/linkedin', label: 'Posts LinkedIn', icon: '⬡' },
+  { href: '/emails', label: 'Générateur mails', icon: '✉' },
   { href: '/compare', label: 'Comparer modèles', icon: '⇄' },
 ]
 

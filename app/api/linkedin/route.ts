@@ -18,15 +18,18 @@ function parseGitHubUrl(url: string): { owner: string; repo: string } | null {
 }
 
 const PostsSchema = z.object({
-  posts: z.tuple([
-    z.object({ tone: z.literal('narrative'), label: z.literal('Narratif'), content: z.string(), hook: z.string() }),
-    z.object({ tone: z.literal('technical'), label: z.literal('Technique'), content: z.string(), hook: z.string() }),
-    z.object({ tone: z.literal('rex'), label: z.literal("Retour d'expérience"), content: z.string(), hook: z.string() }),
-  ]),
+  posts: z.array(
+    z.object({
+      tone: z.enum(['narrative', 'technical', 'rex', 'promo']),
+      label: z.string(),
+      content: z.string(),
+      hook: z.string(),
+    })
+  ).min(3).max(4),
 })
 
-const SYSTEM_PROMPT = `Tu es un expert en personal branding pour développeurs sur LinkedIn.
-Tu génères des posts percutants à partir d'informations sur un projet GitHub.
+const SYSTEM_PROMPT = `Tu es un expert en personal branding pour développeurs et indépendants sur LinkedIn.
+Tu génères des posts percutants et authentiques.
 
 Règles absolues :
 - Longueur : 1200 à 1800 caractères par post (espaces inclus)
@@ -37,12 +40,34 @@ Règles absolues :
 - Écrire à la première personne, ton naturel et direct
 - Terminer par une question ou un call to action concret
 
-Ton NARRATIF : raconte l'histoire du projet — pourquoi, comment, ce qui était dur, ce que ça a changé.
+Ton NARRATIF : raconte l'histoire — pourquoi, comment, ce qui était dur, ce que ça a changé.
 Ton TECHNIQUE : explique un choix technique précis, une architecture, un problème résolu — pour les devs.
-Ton REX : bilan honnête — ce qui a marché, ce qui n'a pas marché, ce que tu referais différemment.`
+Ton REX : bilan honnête — ce qui a marché, ce qui n'a pas marché, ce que tu referais différemment.
+Ton PROMO : post de visibilité/acquisition — met en avant ton expertise ou une offre de service. Doit convertir sans être racoleur.`
 
 export async function POST(req: NextRequest) {
-  const { url } = await req.json().catch(() => ({ url: null }))
+  const body = await req.json().catch(() => ({}))
+  const { url, topic, context: topicContext, mode = 'github' } = body
+
+  // Mode sujet libre
+  if (mode === 'topic') {
+    if (!topic?.trim()) return NextResponse.json({ error: 'Sujet manquant' }, { status: 400 })
+
+    const contextBlock = topicContext?.trim()
+      ? `\n\n## Contexte additionnel\n${topicContext}`
+      : ''
+
+    const { object } = await generateObject({
+      model: anthropic('claude-sonnet-4-5'),
+      schema: PostsSchema,
+      system: SYSTEM_PROMPT,
+      prompt: `Génère 4 posts LinkedIn sur ce sujet :\n\n**${topic}**${contextBlock}\n\nInclus les 4 tons : Narratif, Technique, REX, et Promotionnel.`,
+    })
+
+    return NextResponse.json({ repoName: topic, posts: object.posts, mode: 'topic' })
+  }
+
+  // Mode GitHub (existant)
   if (!url) return NextResponse.json({ error: 'URL manquante' }, { status: 400 })
 
   const coords = parseGitHubUrl(url)
@@ -87,7 +112,7 @@ export async function POST(req: NextRequest) {
     } catch { /* no package.json */ }
   }
 
-  const context = [
+  const githubContext = [
     `# ${repoMeta.full_name}`,
     `Description : ${repoMeta.description ?? 'aucune'}`,
     `Stars : ${repoMeta.stargazers_count} | Forks : ${repoMeta.forks_count}`,
@@ -102,8 +127,8 @@ export async function POST(req: NextRequest) {
     model: anthropic('claude-sonnet-4-5'),
     schema: PostsSchema,
     system: SYSTEM_PROMPT,
-    prompt: `Génère 3 posts LinkedIn pour ce projet GitHub :\n\n${context}`,
+    prompt: `Génère 3 posts LinkedIn (Narratif, Technique, REX) pour ce projet GitHub :\n\n${githubContext}`,
   })
 
-  return NextResponse.json({ repoName: repoMeta.full_name, posts: object.posts })
+  return NextResponse.json({ repoName: repoMeta.full_name, posts: object.posts, mode: 'github' })
 }

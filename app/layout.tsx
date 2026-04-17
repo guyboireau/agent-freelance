@@ -14,6 +14,7 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: '◈' },
   { href: '/chat', label: 'Chat agent', icon: '◎' },
   { href: '/followups', label: 'À relancer', icon: '◷' },
+  { href: '/linkedin', label: 'Posts LinkedIn', icon: '⬡' },
   { href: '/compare', label: 'Comparer modèles', icon: '⇄' },
 ]
 

@@ -2,6 +2,8 @@
 
 import { useChat } from 'ai/react'
 import { useRef, useEffect, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 type InitMessage = { id: string; role: 'user' | 'assistant'; content: string }
 
@@ -17,6 +19,33 @@ const SUGGESTIONS = [
   'Rédige une relance pour [nom]',
   'Estime une app mobile React Native avec auth et paiements',
 ]
+
+function normalizeMessageContent(content: unknown): string {
+  if (typeof content === 'string') return content
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === 'string') return part
+        if (part && typeof part === 'object' && 'text' in part) {
+          const text = (part as { text?: unknown }).text
+          return typeof text === 'string' ? text : ''
+        }
+        return JSON.stringify(part)
+      })
+      .join('\n')
+  }
+
+  return JSON.stringify(content, null, 2)
+}
+
+function MarkdownMessage({ content }: { content: unknown }) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>
+      {normalizeMessageContent(content)}
+    </ReactMarkdown>
+  )
+}
 
 function ChatUI({ threadId, initialMessages }: { threadId: string; initialMessages: InitMessage[] }) {
   const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
@@ -89,11 +118,11 @@ function ChatUI({ threadId, initialMessages }: { threadId: string; initialMessag
               <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mr-2 mt-0.5 shrink-0"
                 style={{ background: '#6366f1', color: '#fff' }}>J</div>
             )}
-            <div className="max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
+            <div className="max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed"
               style={m.role === 'user'
                 ? { background: '#0f172a', color: '#f8fafc', borderBottomRightRadius: 4 }
                 : { background: '#ffffff', color: '#0f172a', border: '1px solid #e2e8f0', borderBottomLeftRadius: 4 }}>
-              {typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}
+              <MarkdownMessage content={m.content} />
             </div>
           </div>
         ))}

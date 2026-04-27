@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { findSimilarProjects } from '@/lib/rag/search'
 import type { BriefAnalysis, PastProject } from '@/lib/supabase/types'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 const RequestSchema = z.object({
   brief_analysis: z.object({
@@ -66,39 +67,48 @@ RÈGLES :
 }
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`quotes-generate:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
+  }
+
   const body = await req.json().catch(() => null)
   const parsed = RequestSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Données invalides' }, { status: 400 })
   }
 
-  const { brief_analysis, raw_brief, prospect_id, brief_id } = parsed.data
+  try {
+    const { brief_analysis, raw_brief, prospect_id, brief_id } = parsed.data
 
-  const similarProjects = await findSimilarProjects(
-    `${brief_analysis.project_type} ${brief_analysis.summary}`,
-    3
-  ).catch(() => [])
+    const similarProjects = await findSimilarProjects(
+      `${brief_analysis.project_type} ${brief_analysis.summary}`,
+      3
+    ).catch(() => [])
 
-  const { object: quote } = await generateObject({
-    model: anthropic('claude-sonnet-4-5'),
-    schema: QuoteSchema,
-    system: 'Tu es un freelance tech expert qui rédige des devis professionnels précis et transparents.',
-    prompt: buildQuotePrompt(brief_analysis as BriefAnalysis, similarProjects, raw_brief),
-  })
-
-  if (prospect_id) {
-    const supabase = await createClient()
-    await supabase.from('quotes').insert({
-      prospect_id,
-      brief_id: brief_id ?? null,
-      lines: quote.lines as unknown as import('@/lib/supabase/types').Json,
-      total_ht: quote.total_ht,
-      duration_days: quote.duration_days,
-      conditions: quote.conditions,
-      notes: quote.notes,
-      status: 'draft',
+    const { object: quote } = await generateObject({
+      model: anthropic('claude-sonnet-4-5'),
+      schema: QuoteSchema,
+      system: 'Tu es un freelance tech expert qui rédige des devis professionnels précis et transparents.',
+      prompt: buildQuotePrompt(brief_analysis as BriefAnalysis, similarProjects, raw_brief),
     })
-  }
 
-  return NextResponse.json({ ...quote, similar_projects: similarProjects })
+    if (prospect_id) {
+      const supabase = await createClient()
+      await supabase.from('quotes').insert({
+        prospect_id,
+        brief_id: brief_id ?? null,
+        lines: quote.lines as unknown as import('@/lib/supabase/types').Json,
+        total_ht: quote.total_ht,
+        duration_days: quote.duration_days,
+        conditions: quote.conditions,
+        notes: quote.notes,
+        status: 'draft',
+      })
+    }
+
+    return NextResponse.json({ ...quote, similar_projects: similarProjects })
+  } catch {
+    return NextResponse.json({ error: 'Erreur pendant la génération du devis' }, { status: 500 })
+  }
 }

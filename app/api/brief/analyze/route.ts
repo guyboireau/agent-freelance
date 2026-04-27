@@ -3,6 +3,7 @@ import { generateObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 const RequestSchema = z.object({
   raw_text: z.string().min(20),
@@ -27,26 +28,34 @@ Sois pragmatique et honnête dans tes estimations. Mieux vaut surestimer légèr
 Pour la complexité : 1=landing page simple, 2=site vitrine, 3=webapp CRUD, 4=app avec logique métier complexe, 5=architecture distribuée/temps réel/IA.`
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`brief-analyze:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
+  }
+
   const body = await req.json().catch(() => null)
   const parsed = RequestSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Texte du brief manquant (min 20 caractères)' }, { status: 400 })
   }
 
-  const { raw_text, prospect_id } = parsed.data
+  try {
+    const { raw_text, prospect_id } = parsed.data
 
-  const { object: analysis } = await generateObject({
-    model: anthropic('claude-sonnet-4-5'),
-    schema: BriefAnalysisSchema,
-    system: SYSTEM_PROMPT,
-    prompt: `Analyse ce brief client :\n\n${raw_text}`,
-  })
+    const { object: analysis } = await generateObject({
+      model: anthropic('claude-sonnet-4-5'),
+      schema: BriefAnalysisSchema,
+      system: SYSTEM_PROMPT,
+      prompt: `Analyse ce brief client :\n\n${raw_text}`,
+    })
 
-  // Persist if prospect_id provided
-  if (prospect_id) {
-    const supabase = await createClient()
-    await supabase.from('briefs').insert({ prospect_id, raw_text, analysis: analysis as unknown as import('@/lib/supabase/types').Json })
+    if (prospect_id) {
+      const supabase = await createClient()
+      await supabase.from('briefs').insert({ prospect_id, raw_text, analysis: analysis as unknown as import('@/lib/supabase/types').Json })
+    }
+
+    return NextResponse.json(analysis)
+  } catch {
+    return NextResponse.json({ error: 'Erreur pendant l\'analyse du brief' }, { status: 500 })
   }
-
-  return NextResponse.json(analysis)
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { FREELANCER } from '@/lib/freelancer'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export type EmailType = 'send_quote' | 'followup' | 'thanks' | 'decline' | 'proposal'
 
@@ -43,6 +44,11 @@ interface EmailContext {
 }
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`email-generate:${getClientIp(req)}`, { limit: 30, windowMs: 60_000 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
+  }
+
   const body = await req.json().catch(() => null)
   if (!body?.type || !body?.prospectName) {
     return NextResponse.json({ error: 'type et prospectName requis' }, { status: 400 })
@@ -52,19 +58,23 @@ export async function POST(req: NextRequest) {
   const promptFn = EMAIL_PROMPTS[type]
   if (!promptFn) return NextResponse.json({ error: 'Type inconnu' }, { status: 400 })
 
-  const { text } = await generateText({
-    model: anthropic('claude-haiku-4-5-20251001'),
-    system: `Tu es l'assistant de ${FREELANCER.name}, ${FREELANCER.title} (TJM ${FREELANCER.tjm}€/j).
+  try {
+    const { text } = await generateText({
+      model: anthropic('claude-haiku-4-5-20251001'),
+      system: `Tu es l'assistant de ${FREELANCER.name}, ${FREELANCER.title} (TJM ${FREELANCER.tjm}€/j).
 Rédige des emails professionnels en français, concis et efficaces.
 Signature à la fin : ${FREELANCER.name} — ${FREELANCER.title}
 ${FREELANCER.email} · ${FREELANCER.website}`,
-    prompt: promptFn(ctx),
-  })
+      prompt: promptFn(ctx),
+    })
 
-  const lines = text.trim().split('\n')
-  const subjectLine = lines.find((l) => l.startsWith('Objet :'))
-  const subject = subjectLine ? subjectLine.replace('Objet :', '').trim() : ''
-  const body_text = lines.filter((l) => !l.startsWith('Objet :')).join('\n').trim()
+    const lines = text.trim().split('\n')
+    const subjectLine = lines.find((l) => l.startsWith('Objet :'))
+    const subject = subjectLine ? subjectLine.replace('Objet :', '').trim() : ''
+    const body_text = lines.filter((l) => !l.startsWith('Objet :')).join('\n').trim()
 
-  return NextResponse.json({ subject, body: body_text })
+    return NextResponse.json({ subject, body: body_text })
+  } catch {
+    return NextResponse.json({ error: 'Erreur pendant la génération de l\'email' }, { status: 500 })
+  }
 }

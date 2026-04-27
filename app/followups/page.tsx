@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { daysSinceUpdated, needsFollowup } from '@/lib/followups'
 
 export default async function FollowupsPage() {
   const supabase = await createClient()
@@ -11,12 +12,7 @@ export default async function FollowupsPage() {
     .in('status', ['quote_sent', 'followup_1'])
     .order('updated_at', { ascending: true })
 
-  const toFollowUp = (prospects ?? []).filter((p) => {
-    const daysSince = Math.floor((now.getTime() - new Date(p.updated_at).getTime()) / 86400000)
-    if (p.status === 'quote_sent' && daysSince >= 7) return true
-    if (p.status === 'followup_1' && daysSince >= 10) return true
-    return false
-  })
+  const toFollowUp = (prospects ?? []).filter((p) => needsFollowup(p, now))
 
   return (
     <div className="p-8 max-w-2xl">
@@ -37,7 +33,7 @@ export default async function FollowupsPage() {
       ) : (
         <div className="space-y-3">
           {toFollowUp.map((p, i) => {
-            const daysSince = Math.floor((now.getTime() - new Date(p.updated_at).getTime()) / 86400000)
+            const daysSince = daysSinceUpdated(p.updated_at, now)
             const isUrgent = daysSince >= 14
             return (
               <div key={p.id}

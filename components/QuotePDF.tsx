@@ -1,6 +1,6 @@
 'use client'
 
-import { Document, Page, Text, View, StyleSheet, pdf, Line, Svg } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer'
 import type { QuoteLine } from '@/lib/supabase/types'
 import { FREELANCER } from '@/lib/freelancer'
 
@@ -226,7 +226,7 @@ function QuotePDFDoc({ prospectName, company, email, phone, siret, address, line
   )
 }
 
-function buildQuoteRef(prospectName: string, date: string): string {
+function buildQuoteRef(prospectName: string): string {
   const year = new Date().getFullYear()
   const month = String(new Date().getMonth() + 1).padStart(2, '0')
   const initials = prospectName
@@ -245,7 +245,7 @@ function addDays(dateStr: string, days: number): string {
 }
 
 export async function downloadQuotePDF(props: Omit<QuotePDFDocProps, 'quoteRef' | 'validUntil'>) {
-  const quoteRef = buildQuoteRef(props.prospectName, props.date)
+  const quoteRef = buildQuoteRef(props.prospectName)
   const validUntil = addDays(props.date, 30)
   const fullProps = { ...props, quoteRef, validUntil }
 

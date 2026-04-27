@@ -168,22 +168,25 @@ function ChatUI({ threadId, initialMessages }: { threadId: string; initialMessag
 }
 
 export default function ChatPage() {
-  const [threadId, setThreadId] = useState<string | null>(null)
-  const [initMessages, setInitMessages] = useState<InitMessage[] | null>(null)
-
-  useEffect(() => {
+  const [threadId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
     let tid = localStorage.getItem(THREAD_KEY)
     if (!tid) {
       tid = genThreadId()
       localStorage.setItem(THREAD_KEY, tid)
     }
-    setThreadId(tid)
+    return tid
+  })
+  const [initMessages, setInitMessages] = useState<InitMessage[] | null>(null)
 
-    fetch(`/api/agent/messages?thread_id=${encodeURIComponent(tid)}`)
+  useEffect(() => {
+    if (!threadId) return
+
+    fetch(`/api/agent/messages?thread_id=${encodeURIComponent(threadId)}`)
       .then((r) => r.json())
       .then((d) => setInitMessages(d.messages ?? []))
       .catch(() => setInitMessages([]))
-  }, [])
+  }, [threadId])
 
   if (!threadId || initMessages === null) {
     return (

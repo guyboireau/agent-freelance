@@ -76,7 +76,7 @@ Same brief → Claude Sonnet vs Claude Haiku in parallel. Side-by-side diff with
 
 ## Stack
 
-- **Next.js 15** App Router, TypeScript strict
+- **Next.js 16** App Router, TypeScript strict
 - **Vercel AI SDK v4** — `streamText` + tool calling, `generateObject` + Zod
 - **Anthropic Claude Sonnet** — analysis, quotes, LinkedIn posts
 - **Claude Haiku** — follow-up drafts, email generation (fast + cheap)

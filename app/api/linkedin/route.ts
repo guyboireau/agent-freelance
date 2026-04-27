@@ -3,6 +3,7 @@ import { Octokit } from '@octokit/rest'
 import { generateObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 function parseGitHubUrl(url: string): { owner: string; repo: string } | null {
   try {
@@ -46,6 +47,11 @@ Ton REX : bilan honnête — ce qui a marché, ce qui n'a pas marché, ce que tu
 Ton PROMO : post de visibilité/acquisition — met en avant ton expertise ou une offre de service. Doit convertir sans être racoleur.`
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(`linkedin:${getClientIp(req)}`, { limit: 12, windowMs: 60_000 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
+  }
+
   const body = await req.json().catch(() => ({}))
   const { url, topic, context: topicContext, mode = 'github' } = body
 
@@ -57,14 +63,18 @@ export async function POST(req: NextRequest) {
       ? `\n\n## Contexte additionnel\n${topicContext}`
       : ''
 
-    const { object } = await generateObject({
-      model: anthropic('claude-sonnet-4-5'),
-      schema: PostsSchema,
-      system: SYSTEM_PROMPT,
-      prompt: `Génère 4 posts LinkedIn sur ce sujet :\n\n**${topic}**${contextBlock}\n\nInclus les 4 tons : Narratif, Technique, REX, et Promotionnel.`,
-    })
+    try {
+      const { object } = await generateObject({
+        model: anthropic('claude-sonnet-4-5'),
+        schema: PostsSchema,
+        system: SYSTEM_PROMPT,
+        prompt: `Génère 4 posts LinkedIn sur ce sujet :\n\n**${topic}**${contextBlock}\n\nInclus les 4 tons : Narratif, Technique, REX, et Promotionnel.`,
+      })
 
-    return NextResponse.json({ repoName: topic, posts: object.posts, mode: 'topic' })
+      return NextResponse.json({ repoName: topic, posts: object.posts, mode: 'topic' })
+    } catch {
+      return NextResponse.json({ error: 'Erreur pendant la génération des posts' }, { status: 500 })
+    }
   }
 
   // Mode GitHub (existant)
@@ -123,12 +133,16 @@ export async function POST(req: NextRequest) {
     readme ? `\n## README\n${readme}` : '',
   ].filter(Boolean).join('\n')
 
-  const { object } = await generateObject({
-    model: anthropic('claude-sonnet-4-5'),
-    schema: PostsSchema,
-    system: SYSTEM_PROMPT,
-    prompt: `Génère 3 posts LinkedIn (Narratif, Technique, REX) pour ce projet GitHub :\n\n${githubContext}`,
-  })
+  try {
+    const { object } = await generateObject({
+      model: anthropic('claude-sonnet-4-5'),
+      schema: PostsSchema,
+      system: SYSTEM_PROMPT,
+      prompt: `Génère 3 posts LinkedIn (Narratif, Technique, REX) pour ce projet GitHub :\n\n${githubContext}`,
+    })
 
-  return NextResponse.json({ repoName: repoMeta.full_name, posts: object.posts, mode: 'github' })
+    return NextResponse.json({ repoName: repoMeta.full_name, posts: object.posts, mode: 'github' })
+  } catch {
+    return NextResponse.json({ error: 'Erreur pendant la génération des posts' }, { status: 500 })
+  }
 }

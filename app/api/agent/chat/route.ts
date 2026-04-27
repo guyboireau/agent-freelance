@@ -1,10 +1,11 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { streamText, tool } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { findSimilarProjects } from '@/lib/rag/search'
 import { FREELANCER, ACTIVE_PROJECTS } from '@/lib/freelancer'
+import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 const SYSTEM_PROMPT = `Tu es Jarvis, l'assistant commercial de ${FREELANCER.name}, développeur freelance (TJM ${FREELANCER.tjm}€/jour).
 
@@ -29,8 +30,43 @@ Quand tu analyses un brief, donne toujours : type de projet, complexité /5, est
 
 type Message = { role: 'user' | 'assistant'; content: string }
 
+const BodySchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        content: z.string().min(1).max(12000),
+      })
+    )
+    .min(1)
+    .max(50),
+  prospect_id: z.string().uuid().optional(),
+  thread_id: z
+    .string()
+    .min(10)
+    .max(120)
+    .regex(/^thread_[a-zA-Z0-9_]+$/)
+    .optional(),
+})
+
 export async function POST(req: NextRequest) {
-  const { messages, prospect_id, thread_id }: { messages: Message[]; prospect_id?: string; thread_id?: string } = await req.json()
+  const rl = rateLimit(`agent-chat:${getClientIp(req)}`, { limit: 30, windowMs: 60_000 })
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
+  }
+
+  const body = await req.json().catch(() => null)
+  const parsed = BodySchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Payload invalide' }, { status: 400 })
+  }
+
+  const { messages, prospect_id, thread_id } = parsed.data as {
+    messages: Message[]
+    prospect_id?: string
+    thread_id?: string
+  }
+
   const supabase = await createClient()
 
   const result = streamText({

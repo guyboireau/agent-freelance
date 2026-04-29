@@ -64,14 +64,14 @@ export async function POST(req: NextRequest) {
       : ''
 
     try {
-      const { object } = await generateObject({
+      const { object: result } = await generateObject({
         model: anthropic('claude-sonnet-4-5'),
         schema: PostsSchema,
         system: SYSTEM_PROMPT,
         prompt: `Génère 4 posts LinkedIn sur ce sujet :\n\n**${topic}**${contextBlock}\n\nInclus les 4 tons : Narratif, Technique, REX, et Promotionnel.`,
       })
 
-      return NextResponse.json({ repoName: topic, posts: object.posts, mode: 'topic' })
+      return NextResponse.json({ repoName: topic, posts: (result as { posts: unknown }).posts, mode: 'topic' })
     } catch {
       return NextResponse.json({ error: 'Erreur pendant la génération des posts' }, { status: 500 })
     }
@@ -134,14 +134,14 @@ export async function POST(req: NextRequest) {
   ].filter(Boolean).join('\n')
 
   try {
-    const { object } = await generateObject({
+    const { object: result } = await generateObject({
       model: anthropic('claude-sonnet-4-5'),
       schema: PostsSchema,
       system: SYSTEM_PROMPT,
       prompt: `Génère 3 posts LinkedIn (Narratif, Technique, REX) pour ce projet GitHub :\n\n${githubContext}`,
     })
 
-    return NextResponse.json({ repoName: repoMeta.full_name, posts: object.posts, mode: 'github' })
+    return NextResponse.json({ repoName: repoMeta.full_name, posts: (result as { posts: unknown }).posts, mode: 'github' })
   } catch {
     return NextResponse.json({ error: 'Erreur pendant la génération des posts' }, { status: 500 })
   }

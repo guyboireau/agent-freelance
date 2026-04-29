@@ -10,9 +10,11 @@ type Bucket = {
 
 const store = new Map<string, Bucket>()
 
+const TRUSTED_PROXY = process.env.TRUSTED_PROXY
+
 export function getClientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for')
-  if (forwarded) {
+  if (forwarded && TRUSTED_PROXY) {
     const first = forwarded.split(',')[0]?.trim()
     if (first) return first
   }
@@ -22,6 +24,17 @@ export function getClientIp(req: Request): string {
 
   return 'unknown'
 }
+
+function cleanupStore() {
+  const now = Date.now()
+  for (const [key, bucket] of store.entries()) {
+    if (now >= bucket.resetAt) {
+      store.delete(key)
+    }
+  }
+}
+
+setInterval(cleanupStore, 60_000)
 
 export function rateLimit(key: string, config: RateLimitConfig) {
   const now = Date.now()

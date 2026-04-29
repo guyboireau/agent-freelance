@@ -1,7 +1,7 @@
 export const FREELANCER = {
   name: 'Guy Boireau',
   title: 'Développeur freelance',
-  email: 'boireauguy@gmail.com',
+  email: process.env.NEXT_PUBLIC_FREELANCER_EMAIL ?? 'boireauguy@gmail.com',
   website: 'guyboireau.com',
   // À renseigner dans .env.local si vous préférez ne pas hardcoder
   siret: process.env.NEXT_PUBLIC_FREELANCER_SIRET ?? '',

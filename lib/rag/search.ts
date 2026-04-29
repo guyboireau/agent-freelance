@@ -1,8 +1,12 @@
-import { generateObject } from 'ai'
+import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import type { PastProject } from '@/lib/supabase/types'
+
+const schema = z.object({
+  similar_ids: z.array(z.string()).max(10).describe('IDs des projets les plus similaires, du plus au moins pertinent'),
+})
 
 // Claude-powered semantic search — no embedding model needed.
 // With only ~10 past projects, including them all in the prompt is fast and cheap.
@@ -15,11 +19,8 @@ export async function findSimilarProjects(query: string, limit = 3): Promise<Pas
     .map((p) => `ID: ${p.id} | ${p.name} (${p.client}) — ${p.type} — ${p.description} — Stack: ${p.stack.join(', ')}`)
     .join('\n')
 
-  const { object } = await generateObject({
+  const { text } = await generateText({
     model: anthropic('claude-haiku-4-5-20251001'),
-    schema: z.object({
-      similar_ids: z.array(z.string()).max(limit).describe('IDs des projets les plus similaires, du plus au moins pertinent'),
-    }),
     prompt: `Tu dois identifier les ${limit} projets passés les plus similaires à ce brief/requête.
 
 REQUÊTE : ${query}
@@ -27,10 +28,22 @@ REQUÊTE : ${query}
 PROJETS DISPONIBLES :
 ${projectList}
 
-Retourne les IDs des projets les plus pertinents.`,
+Retourne UNIQUEMENT un JSON valide sous ce format exact, sans texte supplémentaire :
+{
+  "similar_ids": ["id1", "id2", ...]
+}`,
   })
 
-  const ranked = object.similar_ids
+  let parsed: z.infer<typeof schema> = { similar_ids: [] }
+  try {
+    const raw = JSON.parse(text)
+    parsed = schema.parse(raw)
+  } catch {
+    return []
+  }
+
+  const ranked = parsed.similar_ids
+    .slice(0, limit)
     .map((id) => projects.find((p) => p.id === id))
     .filter((p): p is PastProject => p !== undefined)
 

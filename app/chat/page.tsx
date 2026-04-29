@@ -78,7 +78,7 @@ function ChatUI({ threadId, initialMessages }: { threadId: string; initialMessag
           onClick={() => {
             const newId = genThreadId()
             localStorage.setItem(THREAD_KEY, newId)
-            window.location.reload()
+            window.location.href = window.location.pathname
           }}
           className="text-xs px-3 py-1.5 rounded-lg transition-all"
           style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' }}

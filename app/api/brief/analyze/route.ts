@@ -42,12 +42,13 @@ export async function POST(req: NextRequest) {
   try {
     const { raw_text, prospect_id } = parsed.data
 
-    const { object: analysis } = await generateObject({
+    const { object: analysisRaw } = await generateObject({
       model: anthropic('claude-sonnet-4-5'),
       schema: BriefAnalysisSchema,
       system: SYSTEM_PROMPT,
       prompt: `Analyse ce brief client :\n\n${raw_text}`,
     })
+    const analysis = analysisRaw as z.infer<typeof BriefAnalysisSchema>
 
     if (prospect_id) {
       const supabase = await createClient()

@@ -48,7 +48,10 @@ Complexité : 1=landing page, 2=site vitrine, 3=webapp CRUD, 4=logique métier c
 export async function POST(req: NextRequest) {
   // Auth
   const secret = req.headers.get('x-webhook-secret')
-  if (process.env.WEBHOOK_SECRET && secret !== process.env.WEBHOOK_SECRET) {
+  if (!process.env.WEBHOOK_SECRET) {
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+  }
+  if (secret !== process.env.WEBHOOK_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -95,12 +98,13 @@ export async function POST(req: NextRequest) {
 
   // Analyse Claude
   const briefText = subject ? `Objet : ${subject}\n\n${body}` : body
-  const { object: analysis } = await generateObject({
+  const { object: analysisRaw } = await generateObject({
     model:  anthropic('claude-sonnet-4-5'),
     schema: BriefAnalysisSchema,
     system: SYSTEM_PROMPT,
     prompt: `Analyse ce brief client :\n\n${briefText}`,
   })
+  const analysis = analysisRaw as z.infer<typeof BriefAnalysisSchema>
 
   // Sauvegarde brief + analyse
   await supabase.from('briefs').insert({

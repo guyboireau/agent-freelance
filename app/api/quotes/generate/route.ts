@@ -86,12 +86,13 @@ export async function POST(req: NextRequest) {
       3
     ).catch(() => [])
 
-    const { object: quote } = await generateObject({
+    const { object: quoteRaw } = await generateObject({
       model: anthropic('claude-sonnet-4-5'),
       schema: QuoteSchema,
       system: 'Tu es un freelance tech expert qui rédige des devis professionnels précis et transparents.',
       prompt: buildQuotePrompt(brief_analysis as BriefAnalysis, similarProjects, raw_brief),
     })
+    const quote = quoteRaw as { lines: unknown; total_ht: number; duration_days: number; conditions: string; notes: string }
 
     if (prospect_id) {
       const supabase = await createClient()

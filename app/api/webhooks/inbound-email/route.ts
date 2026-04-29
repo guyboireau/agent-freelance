@@ -98,12 +98,13 @@ export async function POST(req: NextRequest) {
 
   // Analyse Claude
   const briefText = subject ? `Objet : ${subject}\n\n${body}` : body
-  const { object: analysis } = await generateObject({
+  const { object: analysisRaw } = await generateObject({
     model:  anthropic('claude-sonnet-4-5'),
     schema: BriefAnalysisSchema,
     system: SYSTEM_PROMPT,
     prompt: `Analyse ce brief client :\n\n${briefText}`,
   })
+  const analysis = analysisRaw as z.infer<typeof BriefAnalysisSchema>
 
   // Sauvegarde brief + analyse
   await supabase.from('briefs').insert({

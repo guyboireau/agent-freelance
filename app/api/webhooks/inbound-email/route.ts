@@ -48,7 +48,10 @@ Complexité : 1=landing page, 2=site vitrine, 3=webapp CRUD, 4=logique métier c
 export async function POST(req: NextRequest) {
   // Auth
   const secret = req.headers.get('x-webhook-secret')
-  if (process.env.WEBHOOK_SECRET && secret !== process.env.WEBHOOK_SECRET) {
+  if (!process.env.WEBHOOK_SECRET) {
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+  }
+  if (secret !== process.env.WEBHOOK_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

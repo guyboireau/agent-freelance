@@ -67,7 +67,7 @@ RÈGLES :
 }
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`quotes-generate:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })
+  const rl = await rateLimit(`quotes-generate:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
   }

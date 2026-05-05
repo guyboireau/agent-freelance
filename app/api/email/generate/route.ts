@@ -44,7 +44,7 @@ interface EmailContext {
 }
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`email-generate:${getClientIp(req)}`, { limit: 30, windowMs: 60_000 })
+  const rl = await rateLimit(`email-generate:${getClientIp(req)}`, { limit: 30, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
   }

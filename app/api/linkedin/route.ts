@@ -47,7 +47,7 @@ Ton REX : bilan honnête — ce qui a marché, ce qui n'a pas marché, ce que tu
 Ton PROMO : post de visibilité/acquisition — met en avant ton expertise ou une offre de service. Doit convertir sans être racoleur.`
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`linkedin:${getClientIp(req)}`, { limit: 12, windowMs: 60_000 })
+  const rl = await rateLimit(`linkedin:${getClientIp(req)}`, { limit: 12, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
   }

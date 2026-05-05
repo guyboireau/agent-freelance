@@ -1,14 +1,13 @@
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
+
 type RateLimitConfig = {
   limit: number
   windowMs: number
 }
 
-type Bucket = {
-  count: number
-  resetAt: number
-}
-
-const store = new Map<string, Bucket>()
+// Fallback store for local development if Upstash is not configured
+const localStore = new Map<string, { count: number; resetAt: number }>()
 
 const TRUSTED_PROXY = process.env.TRUSTED_PROXY
 
@@ -25,24 +24,39 @@ export function getClientIp(req: Request): string {
   return 'unknown'
 }
 
-function cleanupStore() {
-  const now = Date.now()
-  for (const [key, bucket] of store.entries()) {
-    if (now >= bucket.resetAt) {
-      store.delete(key)
-    }
+let ratelimit: Ratelimit | null = null
+
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  try {
+    ratelimit = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(10, "60 s"), // Default, will be overridden by config
+      analytics: true,
+      prefix: "@upstash/ratelimit",
+    })
+  } catch (e) {
+    console.warn("Failed to initialize Upstash Ratelimit:", e)
   }
 }
 
-setInterval(cleanupStore, 60_000)
+export async function rateLimit(key: string, config: RateLimitConfig) {
+  if (ratelimit) {
+    const { success, remaining, reset } = await ratelimit.limit(key)
+    return {
+      allowed: success,
+      remaining,
+      resetAt: reset,
+      retryAfterSec: Math.ceil((reset - Date.now()) / 1000),
+    }
+  }
 
-export function rateLimit(key: string, config: RateLimitConfig) {
+  // Fallback to in-memory store
   const now = Date.now()
-  const current = store.get(key)
+  const current = localStore.get(key)
 
   if (!current || now >= current.resetAt) {
-    const next: Bucket = { count: 1, resetAt: now + config.windowMs }
-    store.set(key, next)
+    const next = { count: 1, resetAt: now + config.windowMs }
+    localStore.set(key, next)
     return {
       allowed: true,
       remaining: config.limit - 1,
@@ -61,7 +75,7 @@ export function rateLimit(key: string, config: RateLimitConfig) {
   }
 
   current.count += 1
-  store.set(key, current)
+  localStore.set(key, current)
 
   return {
     allowed: true,

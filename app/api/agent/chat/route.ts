@@ -50,7 +50,7 @@ const BodySchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`agent-chat:${getClientIp(req)}`, { limit: 30, windowMs: 60_000 })
+  const rl = await rateLimit(`agent-chat:${getClientIp(req)}`, { limit: 30, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
   }

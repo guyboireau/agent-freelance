@@ -10,7 +10,7 @@ const ThreadSchema = z
   .regex(/^thread_[a-zA-Z0-9_]+$/)
 
 export async function GET(req: NextRequest) {
-  const rl = rateLimit(`agent-messages:${getClientIp(req)}`, { limit: 120, windowMs: 60_000 })
+  const rl = await rateLimit(`agent-messages:${getClientIp(req)}`, { limit: 120, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
   }

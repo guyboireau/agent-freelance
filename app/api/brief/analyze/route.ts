@@ -28,7 +28,7 @@ Sois pragmatique et honnête dans tes estimations. Mieux vaut surestimer légèr
 Pour la complexité : 1=landing page simple, 2=site vitrine, 3=webapp CRUD, 4=app avec logique métier complexe, 5=architecture distribuée/temps réel/IA.`
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`brief-analyze:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })
+  const rl = await rateLimit(`brief-analyze:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
   }

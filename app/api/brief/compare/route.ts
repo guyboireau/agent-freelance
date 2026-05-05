@@ -24,7 +24,7 @@ TJM de référence : 350€/jour.
 Pour la complexité : 1=landing page simple, 2=site vitrine, 3=webapp CRUD, 4=app avec logique métier complexe, 5=architecture distribuée/temps réel/IA.`
 
 export async function POST(req: NextRequest) {
-  const rl = rateLimit(`brief-compare:${getClientIp(req)}`, { limit: 10, windowMs: 60_000 })
+  const rl = await rateLimit(`brief-compare:${getClientIp(req)}`, { limit: 10, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
   }

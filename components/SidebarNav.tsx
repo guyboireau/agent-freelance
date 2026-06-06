@@ -5,8 +5,11 @@ import { usePathname } from 'next/navigation'
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: '◈' },
-  { href: '/chat', label: 'Chat agent', icon: '◎' },
+  { href: '/pipeline', label: 'Pipeline', icon: '▦' },
+  { href: '/calendrier', label: 'Calendrier', icon: '◫' },
+  { href: '/pipeline/generate', label: 'Générer un site', icon: '⊕' },
   { href: '/followups', label: 'À relancer', icon: '◷' },
+  { href: '/chat', label: 'Chat agent', icon: '◎' },
   { href: '/linkedin', label: 'Posts LinkedIn', icon: '⬡' },
   { href: '/emails', label: 'Générateur mails', icon: '✉' },
   { href: '/compare', label: 'Comparer modèles', icon: '⇄' },

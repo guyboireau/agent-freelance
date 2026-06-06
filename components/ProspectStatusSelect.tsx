@@ -6,13 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 import type { ProspectStatus } from '@/lib/supabase/types'
 
 const OPTIONS: { value: ProspectStatus; label: string }[] = [
-  { value: 'brief_received', label: 'Brief reçu' },
-  { value: 'quote_sent', label: 'Devis envoyé' },
-  { value: 'followup_1', label: 'Relance 1' },
-  { value: 'followup_2', label: 'Relance 2' },
+  { value: 'lead_identified', label: 'Lead identifié' },
+  { value: 'demo_generated', label: 'Site démo généré' },
+  { value: 'r1_done', label: 'R1 effectué' },
+  { value: 'followup_r2', label: 'En relance R2' },
   { value: 'won', label: 'Gagné' },
   { value: 'lost', label: 'Perdu' },
-  { value: 'archived', label: 'Archivé' },
+  { value: 'postponed', label: 'Reporté' },
 ]
 
 export default function ProspectStatusSelect({

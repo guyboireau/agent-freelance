@@ -179,7 +179,7 @@ export default function DocumentUpload({ prospectId, documents, onUpload, onDele
                         {doc.name}
                       </a>
                       <span className="text-xs shrink-0" style={{ color: '#cbd5e1' }}>
-                        {formatBytes(doc.size_bytes)} · {formatDate(doc.created_at)}
+                        {formatBytes(doc.size_bytes)} · {doc.created_at ? formatDate(doc.created_at) : '—'}
                       </span>
                       <button
                         onClick={() => handleDelete(doc)}

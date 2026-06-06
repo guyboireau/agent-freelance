@@ -5,7 +5,17 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Prospect } from '@/lib/supabase/types'
 
-type EditableFields = Pick<Prospect, 'email' | 'phone' | 'siret' | 'address' | 'company'>
+type EditableFields = Pick<Prospect,
+  | 'email'
+  | 'phone'
+  | 'siret'
+  | 'address'
+  | 'company'
+  | 'vercel_demo_url'
+  | 'assigned_template'
+  | 'last_contact_at'
+  | 'next_followup_at'
+> & { requested_changes_text: string }
 
 export default function ProspectInfoEditor({ prospect }: { prospect: Prospect }) {
   const [open, setOpen] = useState(false)
@@ -15,22 +25,42 @@ export default function ProspectInfoEditor({ prospect }: { prospect: Prospect })
     siret: prospect.siret ?? '',
     address: prospect.address ?? '',
     company: prospect.company ?? '',
+    vercel_demo_url: prospect.vercel_demo_url ?? '',
+    assigned_template: prospect.assigned_template ?? '',
+    requested_changes_text: (prospect.requested_changes?.items ?? []).join('\n'),
+    last_contact_at: prospect.last_contact_at ? prospect.last_contact_at.slice(0, 10) : '',
+    next_followup_at: prospect.next_followup_at ? prospect.next_followup_at.slice(0, 10) : '',
   })
   const [saving, setSaving] = useState(false)
   const router = useRouter()
 
-  const hasData = Object.values({ email: prospect.email, phone: prospect.phone, siret: prospect.siret, address: prospect.address }).some(Boolean)
+  const hasData = Object.values({
+    email: prospect.email,
+    phone: prospect.phone,
+    siret: prospect.siret,
+    address: prospect.address,
+    vercel_demo_url: prospect.vercel_demo_url,
+  }).some(Boolean)
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
     const supabase = createClient()
+    const items = fields.requested_changes_text
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
     await supabase.from('prospects').update({
       email: fields.email || null,
       phone: fields.phone || null,
       siret: fields.siret || null,
       address: fields.address || null,
       company: fields.company || null,
+      vercel_demo_url: fields.vercel_demo_url || null,
+      assigned_template: fields.assigned_template || null,
+      requested_changes: items.length > 0 ? { items } : {},
+      last_contact_at: fields.last_contact_at || null,
+      next_followup_at: fields.next_followup_at || null,
     }).eq('id', prospect.id)
     setSaving(false)
     setOpen(false)
@@ -49,6 +79,17 @@ export default function ProspectInfoEditor({ prospect }: { prospect: Prospect })
             {prospect.phone && <p>{prospect.phone}</p>}
             {prospect.siret && <p className="text-xs font-mono">SIRET {prospect.siret}</p>}
             {prospect.address && <p className="text-xs">{prospect.address}</p>}
+            {prospect.vercel_demo_url && (
+              <a
+                href={prospect.vercel_demo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs underline"
+                style={{ color: '#6366f1' }}
+              >
+                Voir le site démo
+              </a>
+            )}
           </div>
         )}
         <button onClick={() => setOpen(true)}
@@ -88,6 +129,36 @@ export default function ProspectInfoEditor({ prospect }: { prospect: Prospect })
           <label className="text-xs text-zinc-400 mb-1 block">Adresse</label>
           <input value={fields.address ?? ''} onChange={e => setFields(f => ({ ...f, address: e.target.value }))}
             placeholder="12 rue de la Paix, 75001 Paris" className={inputClass} />
+        </div>
+        <div className="col-span-2">
+          <label className="text-xs text-zinc-400 mb-1 block">URL démo Vercel</label>
+          <input value={fields.vercel_demo_url ?? ''} onChange={e => setFields(f => ({ ...f, vercel_demo_url: e.target.value }))}
+            placeholder="https://mon-site.vercel.app" type="url" className={inputClass} />
+        </div>
+        <div className="col-span-2">
+          <label className="text-xs text-zinc-400 mb-1 block">Template assigné</label>
+          <input value={fields.assigned_template ?? ''} onChange={e => setFields(f => ({ ...f, assigned_template: e.target.value }))}
+            placeholder="premium-multipage / site-vitrine-template" className={inputClass} />
+        </div>
+        <div className="col-span-2">
+          <label className="text-xs text-zinc-400 mb-1 block">Modifications demandées (une par ligne)</label>
+          <textarea
+            value={fields.requested_changes_text}
+            onChange={e => setFields(f => ({ ...f, requested_changes_text: e.target.value }))}
+            placeholder="Changer la couleur du header&#10;Ajouter une galerie photo"
+            rows={3}
+            className={inputClass + ' resize-none'}
+          />
+        </div>
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Dernier contact</label>
+          <input value={fields.last_contact_at ?? ''} onChange={e => setFields(f => ({ ...f, last_contact_at: e.target.value }))}
+            type="date" className={inputClass} />
+        </div>
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Prochaine relance</label>
+          <input value={fields.next_followup_at ?? ''} onChange={e => setFields(f => ({ ...f, next_followup_at: e.target.value }))}
+            type="date" className={inputClass} />
         </div>
       </div>
       <div className="flex gap-2">

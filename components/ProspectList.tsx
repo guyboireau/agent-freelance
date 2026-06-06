@@ -4,23 +4,23 @@ import Link from 'next/link'
 import type { ProspectStatus } from '@/lib/supabase/types'
 
 const STATUS_LABELS: Record<ProspectStatus, string> = {
-  brief_received: 'Brief reçu',
-  quote_sent: 'Devis envoyé',
-  followup_1: 'Relance 1',
-  followup_2: 'Relance 2',
+  lead_identified: 'Lead identifié',
+  demo_generated: 'Site démo généré',
+  r1_done: 'R1 effectué',
+  followup_r2: 'En relance R2',
   won: 'Gagné',
   lost: 'Perdu',
-  archived: 'Archivé',
+  postponed: 'Reporté',
 }
 
 const STATUS_STYLES: Record<ProspectStatus, { bg: string; color: string }> = {
-  brief_received: { bg: '#eff6ff', color: '#1d4ed8' },
-  quote_sent:     { bg: '#fefce8', color: '#a16207' },
-  followup_1:     { bg: '#fff7ed', color: '#c2410c' },
-  followup_2:     { bg: '#fef2f2', color: '#b91c1c' },
-  won:            { bg: '#f0fdf4', color: '#15803d' },
-  lost:           { bg: '#f8fafc', color: '#64748b' },
-  archived:       { bg: '#f8fafc', color: '#94a3b8' },
+  lead_identified: { bg: '#e2e8f0', color: '#475569' },
+  demo_generated:  { bg: '#dbeafe', color: '#1d4ed8' },
+  r1_done:         { bg: '#ede9fe', color: '#6d28d9' },
+  followup_r2:     { bg: '#fef3c7', color: '#d97706' },
+  won:             { bg: '#d1fae5', color: '#059669' },
+  lost:            { bg: '#fee2e2', color: '#dc2626' },
+  postponed:       { bg: '#f8fafc', color: '#94a3b8' },
 }
 
 type Prospect = {
@@ -45,7 +45,7 @@ export default function ProspectList({ prospects }: { prospects: Prospect[] }) {
   return (
     <div className="space-y-2">
       {prospects.map((p, i) => {
-        const s = STATUS_STYLES[p.status as ProspectStatus] ?? STATUS_STYLES.archived
+        const s = STATUS_STYLES[p.status as ProspectStatus] ?? STATUS_STYLES.postponed
         return (
           <Link
             key={p.id}
@@ -79,7 +79,7 @@ export default function ProspectList({ prospects }: { prospects: Prospect[] }) {
               </span>
               <span className="text-xs px-2.5 py-1 rounded-full font-medium"
                 style={{ background: s.bg, color: s.color }}>
-                {STATUS_LABELS[p.status as ProspectStatus]}
+                {STATUS_LABELS[p.status as ProspectStatus] ?? p.status}
               </span>
             </div>
           </Link>

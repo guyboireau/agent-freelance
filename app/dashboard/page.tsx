@@ -1,22 +1,24 @@
 import { createClient } from '@/lib/supabase/server'
 import NewProspectForm from '@/components/NewProspectForm'
 import ProspectList from '@/components/ProspectList'
+import LeadOmeter from '@/components/LeadOmeter'
 
 export default async function Dashboard() {
   const supabase = await createClient()
   const [{ data: prospects }, { data: quotes }] = await Promise.all([
-    supabase.from('prospects').select('*').not('status', 'in', '("archived")').order('updated_at', { ascending: false }),
+    supabase.from('prospects').select('*').not('status', 'in', '("postponed")').order('updated_at', { ascending: false }),
     supabase.from('quotes').select('total_ht, status'),
   ])
 
   const active = prospects ?? []
   const wonCount = active.filter((p) => p.status === 'won').length
   const pendingCount = active.filter((p) =>
-    ['brief_received', 'quote_sent', 'followup_1', 'followup_2'].includes(p.status)
+    ['lead_identified', 'demo_generated', 'r1_done', 'followup_r2'].includes(p.status)
   ).length
   const total = active.length
   const conversionRate = total > 0 ? Math.round((wonCount / total) * 100) : 0
   const totalRevenue = (quotes ?? []).filter((q) => q.status === 'accepted').reduce((s, q) => s + (q.total_ht ?? 0), 0)
+  const forecastRevenue = (quotes ?? []).filter((q) => ['draft', 'sent'].includes(q.status)).reduce((s, q) => s + (q.total_ht ?? 0), 0)
 
   const stats = [
     { label: 'Prospects', value: String(total), accent: '#6366f1' },
@@ -24,12 +26,13 @@ export default async function Dashboard() {
     { label: 'Gagnés', value: String(wonCount), accent: '#10b981' },
     { label: 'Conversion', value: `${conversionRate}%`, accent: '#8b5cf6' },
     { label: 'CA signé', value: totalRevenue > 0 ? `${totalRevenue.toLocaleString('fr-FR')}€` : '—', accent: '#0ea5e9' },
+    { label: 'CA prévisionnel', value: forecastRevenue > 0 ? `${forecastRevenue.toLocaleString('fr-FR')}€` : '—', accent: '#f97316' },
   ]
 
   return (
     <div className="p-8 max-w-5xl">
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-4 mb-10">
+      <div className="grid grid-cols-6 gap-4 mb-10">
         {stats.map((s, i) => (
           <div
             key={s.label}
@@ -53,6 +56,11 @@ export default async function Dashboard() {
 
       {/* List */}
       <ProspectList prospects={active} />
+
+      {/* Lead-O-Meter */}
+      <div className="mt-10 max-w-sm">
+        <LeadOmeter />
+      </div>
     </div>
   )
 }

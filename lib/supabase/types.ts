@@ -6,67 +6,94 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
-  __InternalSupabase: { PostgrestVersion: '14.5' }
-  public: {
-    Tables: {
-      briefs: {
-        Row: { analysis: Json | null; created_at: string; id: string; prospect_id: string; raw_text: string }
-        Insert: { analysis?: Json | null; created_at?: string; id?: string; prospect_id: string; raw_text: string }
-        Update: { analysis?: Json | null; created_at?: string; id?: string; prospect_id?: string; raw_text?: string }
-        Relationships: []
-      }
-      documents: {
-        Row: { created_at: string; id: string; name: string; prospect_id: string; size_bytes: number | null; storage_path: string; type: string; url: string }
-        Insert: { created_at?: string; id?: string; name: string; prospect_id: string; size_bytes?: number | null; storage_path: string; type?: string; url: string }
-        Update: { created_at?: string; id?: string; name?: string; prospect_id?: string; size_bytes?: number | null; storage_path?: string; type?: string; url?: string }
-        Relationships: []
-      }
-      messages: {
-        Row: { content: string; created_at: string; id: string; prospect_id: string | null; role: string; thread_id: string | null; tool_calls: Json | null }
-        Insert: { content: string; created_at?: string; id?: string; prospect_id?: string | null; role: string; thread_id?: string | null; tool_calls?: Json | null }
-        Update: { content?: string; created_at?: string; id?: string; prospect_id?: string | null; role?: string; thread_id?: string | null; tool_calls?: Json | null }
-        Relationships: []
-      }
-      past_projects: {
-        Row: { client: string; created_at: string; daily_rate: number | null; delivered_at: string | null; description: string; duration_days: number | null; embedding: string | null; id: string; name: string; stack: string[]; total_ht: number | null; type: string }
-        Insert: { client: string; created_at?: string; daily_rate?: number | null; delivered_at?: string | null; description: string; duration_days?: number | null; embedding?: string | null; id?: string; name: string; stack?: string[]; total_ht?: number | null; type: string }
-        Update: { client?: string; created_at?: string; daily_rate?: number | null; delivered_at?: string | null; description?: string; duration_days?: number | null; embedding?: string | null; id?: string; name?: string; stack?: string[]; total_ht?: number | null; type?: string }
-        Relationships: []
-      }
-      prospects: {
-        Row: { address: string | null; company: string | null; created_at: string; email: string | null; id: string; name: string; phone: string | null; siret: string | null; source: string | null; status: string; updated_at: string }
-        Insert: { address?: string | null; company?: string | null; created_at?: string; email?: string | null; id?: string; name: string; phone?: string | null; siret?: string | null; source?: string | null; status?: string; updated_at?: string }
-        Update: { address?: string | null; company?: string | null; created_at?: string; email?: string | null; id?: string; name?: string; phone?: string | null; siret?: string | null; source?: string | null; status?: string; updated_at?: string }
-        Relationships: []
-      }
-      quotes: {
-        Row: { brief_id: string | null; conditions: string | null; created_at: string; duration_days: number | null; id: string; lines: Json; notes: string | null; prospect_id: string; status: string; total_ht: number | null }
-        Insert: { brief_id?: string | null; conditions?: string | null; created_at?: string; duration_days?: number | null; id?: string; lines?: Json; notes?: string | null; prospect_id: string; status?: string; total_ht?: number | null }
-        Update: { brief_id?: string | null; conditions?: string | null; created_at?: string; duration_days?: number | null; id?: string; lines?: Json; notes?: string | null; prospect_id?: string; status?: string; total_ht?: number | null }
-        Relationships: []
-      }
-    }
-    Views: { [_ in never]: never }
-    Functions: {
-      match_past_projects: {
-        Args: { match_count?: number; query_embedding: string }
-        Returns: { client: string; created_at: string; daily_rate: number; delivered_at: string; description: string; duration_days: number; id: string; name: string; similarity: number; stack: string[]; total_ht: number; type: string }[]
-      }
-    }
-    Enums: { [_ in never]: never }
-    CompositeTypes: { [_ in never]: never }
-  }
-}
+export type ProspectStatus =
+  | 'lead_identified'
+  | 'demo_generated'
+  | 'r1_done'
+  | 'followup_r2'
+  | 'won'
+  | 'lost'
+  | 'postponed'
 
-export type ProspectStatus = 'brief_received' | 'quote_sent' | 'followup_1' | 'followup_2' | 'won' | 'lost' | 'archived'
+export type RdvType = 'R1' | 'R2' | 'autre'
 export type DocumentType = 'brief' | 'quote' | 'contract' | 'other'
 
-export type Prospect = Database['public']['Tables']['prospects']['Row']
-export type Brief = Database['public']['Tables']['briefs']['Row']
-export type Quote = Database['public']['Tables']['quotes']['Row']
-export type PastProject = Database['public']['Tables']['past_projects']['Row']
-export type Document = Database['public']['Tables']['documents']['Row']
+export interface Prospect {
+  id: string
+  name: string
+  company: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  siret: string | null
+  source: string | null
+  status: ProspectStatus
+  vercel_demo_url: string | null
+  requested_changes: { items?: string[] } | null
+  assigned_template: string | null
+  last_contact_at: string | null
+  next_followup_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Rdv {
+  id: string
+  prospect_id: string
+  type: RdvType
+  scheduled_at: string
+  notes: string | null
+  completed: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Brief {
+  id: string
+  prospect_id: string
+  raw_text: string
+  analysis: Json | null
+  created_at: string
+}
+
+export interface Quote {
+  id: string
+  prospect_id: string
+  brief_id: string | null
+  lines: Json
+  total_ht: number | null
+  duration_days: number | null
+  conditions: string | null
+  notes: string | null
+  status: 'draft' | 'sent' | 'accepted' | 'refused'
+  created_at: string
+}
+
+export interface PastProject {
+  id: string
+  name: string
+  client: string
+  type: string
+  description: string
+  stack: string[]
+  duration_days: number | null
+  daily_rate: number | null
+  total_ht: number | null
+  delivered_at: string | null
+  embedding: string | null
+  created_at: string
+}
+
+export interface Document {
+  id: string
+  prospect_id: string
+  name: string
+  url: string
+  storage_path: string
+  type: string
+  size_bytes: number | null
+  created_at: string | null
+}
 
 export interface BriefAnalysis {
   project_type: string

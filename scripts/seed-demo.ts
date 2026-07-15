@@ -239,7 +239,7 @@ async function seed() {
 
     const { data: prospect, error: pErr } = await supabase
       .from('prospects')
-      .insert(prospectData as any)
+      .insert(prospectData as Record<string, unknown>)
       .select()
       .single()
 

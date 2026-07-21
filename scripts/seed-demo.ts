@@ -88,7 +88,41 @@ const PAST_PROJECTS = [
 
 // ─── Prospects ───────────────────────────────────────────────────────────────
 
-const PROSPECTS = [
+type QuoteLine = {
+  label: string
+  days: number
+  unit_price: number
+  total: number
+}
+
+type BriefAnalysis = {
+  project_type: string
+  probable_stack: string[]
+  complexity: number
+  unclear_points: string[]
+  budget_signals: string[]
+  estimated_days: number
+  summary: string
+}
+
+// phone et siret sont absents de certains fixtures. Sans ce type explicite, TS infère
+// une union de formes hétérogènes que la surcharge de .insert() ne sait pas résoudre.
+type DemoProspect = {
+  name: string
+  company: string
+  email: string
+  phone?: string
+  siret?: string
+  source: string
+  status: string
+  brief_text: string
+  brief_analysis: BriefAnalysis | null
+  quote_lines: QuoteLine[]
+  quote_total: number
+  quote_status: string
+}
+
+const PROSPECTS: DemoProspect[] = [
   {
     name: 'Marie Dubois',
     company: 'Startup Renov',
@@ -239,7 +273,7 @@ async function seed() {
 
     const { data: prospect, error: pErr } = await supabase
       .from('prospects')
-      .insert(prospectData as any)
+      .insert(prospectData)
       .select()
       .single()
 

@@ -43,7 +43,7 @@ Conversational interface powered by `streamText` + tool calling. Each conversati
 The agent knows your active projects, your rates, and your stack. Tools available:
 
 ```text
-search_similar_projects  → RAG search over past_projects (pgvector)
+search_similar_projects  → semantic search over past_projects (Haiku-ranked, no embeddings)
 create_prospect          → insert a new prospect in the DB
 list_prospects           → filtered view of the pipeline
 get_prospect_details     → full prospect data (brief + quote)
@@ -76,11 +76,11 @@ Same brief → Claude Sonnet vs Claude Haiku in parallel. Side-by-side diff with
 
 ## Stack
 
-- **Next.js 16** App Router, TypeScript strict
+- **Next.js 15** App Router, React 19, TypeScript strict
 - **Vercel AI SDK v4** — `streamText` + tool calling, `generateObject` + Zod
 - **Anthropic Claude Sonnet** — analysis, quotes, LinkedIn posts
 - **Claude Haiku** — follow-up drafts, email generation (fast + cheap)
-- **Supabase** — Postgres + pgvector + Storage
+- **Supabase** — Postgres + Storage (typed client, generated types)
 - **@react-pdf/renderer** — PDF quote export
 - **Vitest** — integration tests with mocked LLM
 
@@ -148,7 +148,7 @@ NEXT_PUBLIC_FREELANCER_PHONE=
 NEXT_PUBLIC_FREELANCER_ADDRESS=
 ```
 
-Supabase setup: enable pgvector, run `supabase/migrations/` in order.
+Supabase setup: run `supabase/migrations/` in order.
 
 ## Tests
 

@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...sauf le gabarit sans secret, que le README demande de copier.
+!.env.local.example
+
+# base vectorielle locale (artefact d'outillage, jamais lue par l'app)
+*.db
 
 # vercel
 .vercel

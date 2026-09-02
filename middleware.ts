@@ -32,7 +32,9 @@ export async function middleware(req: NextRequest) {
           return req.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => req.cookies.set(name, value))
+          // `options` est volontairement omis ici : la requête entrante ne porte
+          // que name/value. Les options ne valent que pour la réponse, plus bas.
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
           response = NextResponse.next({
             request: {
               headers: req.headers,

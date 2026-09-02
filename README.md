@@ -130,25 +130,35 @@ Then seed demo data:
 npx tsx scripts/seed-demo.ts
 ```
 
-Required env vars:
+Required env vars (full annotated list in [`.env.local.example`](.env.local.example)):
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ANTHROPIC_API_KEY=
-SUPABASE_SERVICE_ROLE_KEY=    # seed script only
+SUPABASE_SERVICE_ROLE_KEY=      # seed script only
 
 # Webhook Make.com
-WEBHOOK_SECRET=               # secret partagé avec Make (header x-webhook-secret)
-NEXT_PUBLIC_APP_URL=          # ex: https://agent-freelance.vercel.app
+WEBHOOK_SECRET=                 # secret partagé avec Make (header x-webhook-secret)
+NEXT_PUBLIC_APP_URL=            # ex: https://agent-freelance.vercel.app
+
+# Optional
+SITE_GENERATOR_WEBHOOK_URL=     # /api/pipeline/generate — sinon la route répond 503
+TRUSTED_PROXY=                  # non vide = x-forwarded-for pris en compte par le rate limit
 
 # Optional — shown on PDF quotes
+NEXT_PUBLIC_FREELANCER_EMAIL=
 NEXT_PUBLIC_FREELANCER_SIRET=
 NEXT_PUBLIC_FREELANCER_PHONE=
 NEXT_PUBLIC_FREELANCER_ADDRESS=
 ```
 
 Supabase setup: run `supabase/migrations/` in order.
+
+> ⚠️ Le dossier ne contient que `002_documents_and_extras.sql`, qui fait des
+> `ALTER TABLE prospects` / `messages`. Il n'y a **pas** de migration initiale :
+> le schéma de base (`prospects`, `briefs`, `quotes`, `messages`, `past_projects`)
+> doit être créé à la main avant, puis `database/rls-setup.sql` pour la RLS.
 
 ## Tests
 

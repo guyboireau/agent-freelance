@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { findSimilarProjects } from '@/lib/rag/search'
 import type { BriefAnalysis, PastProject } from '@/lib/supabase/types'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { FREELANCER, TJM_LABEL } from '@/lib/freelancer'
 
 const RequestSchema = z.object({
   brief_analysis: z.object({
@@ -59,7 +60,7 @@ PROJETS SIMILAIRES LIVRÉS (référence pour calibrer) :
 ${projectsCtx}
 
 RÈGLES :
-- TJM : 350€/jour
+- TJM : ${TJM_LABEL}
 - Décomposer en lignes logiques (setup, développement, intégration, tests, déploiement)
 - Ajouter 15% de marge sur l'estimation initiale
 - Conditions standard : 30% à la commande, 70% à la livraison, délai de paiement 30j
@@ -70,6 +71,11 @@ export async function POST(req: NextRequest) {
   const rl = rateLimit(`quotes-generate:${getClientIp(req)}`, { limit: 20, windowMs: 60_000 })
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Trop de requêtes' }, { status: 429 })
+  }
+
+  // Sans TJM, le modèle inventerait un taux : mieux vaut refuser qu'émettre un devis faux.
+  if (FREELANCER.tjm === null) {
+    return NextResponse.json({ error: 'TJM non configuré : définir NEXT_PUBLIC_FREELANCER_TJM' }, { status: 503 })
   }
 
   const body = await req.json().catch(() => null)

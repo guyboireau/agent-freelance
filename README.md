@@ -108,7 +108,8 @@ app/
 └── followups/              relance queue
 
 lib/
-├── freelancer.ts           your profile (TJM, SIRET, active projects)
+├── freelancer.ts           your profile, read from NEXT_PUBLIC_FREELANCER_* (nothing real in the repo)
+├── active-projects.ts      current projects for the chat agent (server-only env var)
 ├── supabase/               typed client (server + browser), generated types
 └── rag/search.ts           semantic project search (Haiku ranking)
 ```
@@ -146,11 +147,16 @@ NEXT_PUBLIC_APP_URL=            # ex: https://agent-freelance.vercel.app
 SITE_GENERATOR_WEBHOOK_URL=     # /api/pipeline/generate — sinon la route répond 503
 TRUSTED_PROXY=                  # non vide = x-forwarded-for pris en compte par le rate limit
 
-# Optional — shown on PDF quotes
+# Freelancer profile — PDF quotes and prompts (the repo is public: no real data in code)
+NEXT_PUBLIC_FREELANCER_NAME=
+NEXT_PUBLIC_FREELANCER_TITLE=
 NEXT_PUBLIC_FREELANCER_EMAIL=
+NEXT_PUBLIC_FREELANCER_WEBSITE=
 NEXT_PUBLIC_FREELANCER_SIRET=
 NEXT_PUBLIC_FREELANCER_PHONE=
 NEXT_PUBLIC_FREELANCER_ADDRESS=
+NEXT_PUBLIC_FREELANCER_TJM=     # sans TJM, /api/quotes/generate répond 503
+FREELANCER_ACTIVE_PROJECTS=     # JSON, côté serveur uniquement (projets cités par le chat agent)
 ```
 
 Supabase setup: run `supabase/migrations/` in order.

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateText } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
-import { FREELANCER } from '@/lib/freelancer'
+import { FREELANCER, TJM_LABEL } from '@/lib/freelancer'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
 export type EmailType = 'send_quote' | 'followup' | 'thanks' | 'decline' | 'proposal'
@@ -61,10 +61,10 @@ export async function POST(req: NextRequest) {
   try {
     const { text } = await generateText({
       model: anthropic('claude-haiku-4-5-20251001'),
-      system: `Tu es l'assistant de ${FREELANCER.name}, ${FREELANCER.title} (TJM ${FREELANCER.tjm}€/j).
+      system: `Tu es l'assistant de ${FREELANCER.name}, ${FREELANCER.title} (TJM ${TJM_LABEL}).
 Rédige des emails professionnels en français, concis et efficaces.
 Signature à la fin : ${FREELANCER.name} — ${FREELANCER.title}
-${FREELANCER.email} · ${FREELANCER.website}`,
+${[FREELANCER.email, FREELANCER.website].filter(Boolean).join(' · ')}`,
       prompt: promptFn(ctx),
     })
 

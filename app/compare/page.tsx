@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { BriefAnalysis } from '@/lib/supabase/types'
+import { formatEstimate } from '@/lib/freelancer'
 
 type ModelResult =
   | { success: true; analysis: BriefAnalysis; usage: { promptTokens: number; completionTokens: number } }
@@ -128,7 +129,7 @@ export default function ComparePage() {
                         </div>
                         <div>
                           <p className="text-zinc-400 text-xs uppercase tracking-wide">Estimation</p>
-                          <p className="font-medium mt-0.5">{r.analysis.estimated_days}j · {r.analysis.estimated_days * 350}€ HT</p>
+                          <p className="font-medium mt-0.5">{formatEstimate(r.analysis.estimated_days)}</p>
                         </div>
                         <div>
                           <p className="text-zinc-400 text-xs uppercase tracking-wide">Tokens</p>

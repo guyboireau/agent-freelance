@@ -12,6 +12,9 @@
 > - **MED-03 (`getClientIp`) : documenté.** `x-forwarded-for` n'est pris en compte que si `TRUSTED_PROXY` est définie, ce que `.env.local.example` explique depuis #7.
 > - **LOW-01 (`tsconfig.tsbuildinfo`) : sans objet.** Le fichier n'apparaît dans aucun commit.
 > - **HIGH-03 et MED-07 : non vérifiables depuis le dépôt** (poste local, réponses d'erreur à l'exécution).
+> - **HIGH-02 (redirection ouverte du login) : corrigé.** `lib/safe-redirect.ts` n'accepte qu'un chemin interne ; tests dans `__tests__/lib/safe-redirect.test.ts`.
+> - **MED-02 (PII) : en partie.** Plus aucune donnée réelle dans le dépôt, repli de l'e-mail compris. Le profil vient des variables `NEXT_PUBLIC_FREELANCER_*`, les projets en cours de `FREELANCER_ACTIVE_PROJECTS`, lue côté serveur. Les coordonnées et le TJM restent dans le bundle client, le devis PDF étant généré dans le navigateur. Les anciennes valeurs subsistent aussi dans l'historique git.
+> - **LOW-04 (`npm audit`) : en partie.** `npm audit` a été exécuté le 2026-09-23 : `next` passe en 15.5.26, qui corrige les deux advisories critiques. Les vulnérabilités restantes ne se corrigent qu'avec un changement de version majeure. Dependabot n'est pas activé.
 > - **Tous les autres constats restent ouverts sur `main`.**
 
 ---
@@ -188,7 +191,7 @@ if (origin && !allowedOrigins.includes(origin)) {
 ### [MED-02] Leak d'informations personnelles (PII) dans le bundle client
 
 **Fichier** : `lib/freelancer.ts` (lignes 1–23)  
-**Description** : L'objet `FREELANCER` expose par defaut l'email `boireauguy@gmail.com`, le SIRET, le telephone et l'adresse via des variables `NEXT_PUBLIC_*`. Ces champs sont injectes dans le bundle JavaScript client (visible dans l'onglet Sources du navigateur).  
+**Description** : L'objet `FREELANCER` expose par defaut une adresse email reelle (retiree du depot le 2026-09-23), le SIRET, le telephone et l'adresse via des variables `NEXT_PUBLIC_*`. Ces champs sont injectes dans le bundle JavaScript client (visible dans l'onglet Sources du navigateur).  
 **Impact** : Fuite de PII / informations d'identite professionnelle.  
 **Remediation** :
 - Ne pas prefixer par `NEXT_PUBLIC_` les champs sensibles ; les charger cote serveur uniquement.

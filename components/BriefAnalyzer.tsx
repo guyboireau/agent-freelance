@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Brief, BriefAnalysis } from '@/lib/supabase/types'
+import { formatEstimate } from '@/lib/freelancer'
 
 const COMPLEXITY_LABEL = ['', 'Très simple', 'Simple', 'Modéré', 'Complexe', 'Très complexe']
 
@@ -74,7 +75,7 @@ export default function BriefAnalyzer({
             </div>
             <div>
               <span className="text-zinc-400 text-xs uppercase tracking-wide">Estimation</span>
-              <p className="font-medium mt-0.5">{analysis.estimated_days}j · {analysis.estimated_days * 350}€ HT</p>
+              <p className="font-medium mt-0.5">{formatEstimate(analysis.estimated_days)}</p>
             </div>
             <div>
               <span className="text-zinc-400 text-xs uppercase tracking-wide">Stack probable</span>

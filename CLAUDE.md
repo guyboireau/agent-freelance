@@ -46,19 +46,35 @@ Fichiers concernés :
 
 ## Conventions de code
 
-- Pas de `;` en fin de ligne (config ESLint)
+- Pas de `;` en fin de ligne : convention du code, qu'aucun outil n'impose (ESLint n'applique que les presets `next/core-web-vitals` et `next/typescript`)
 - Imports absolus via `@/` (alias TypeScript)
 - Pas de `any` implicite — `strict: true` dans `tsconfig.json`
 - Les fonctions serveur Supabase sont `async` et retournent `Promise<SupabaseClient>`
 
 ## Variables d'environnement
 
+Liste de référence, commentée : `.env.local.example`.
+
 ```bash
+# Supabase (requis)
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=        # scripts/seed-demo.ts uniquement
+
+# Anthropic (requis)
 ANTHROPIC_API_KEY=
+
+# Webhook Make.com (requis pour /api/webhooks/inbound-email)
 WEBHOOK_SECRET=
+NEXT_PUBLIC_APP_URL=              # URL publique, pour les liens des mails sortants
+
+# Optionnelles
+SITE_GENERATOR_WEBHOOK_URL=       # /api/pipeline/generate, sinon la route répond 503
+TRUSTED_PROXY=                    # non vide = x-forwarded-for pris en compte par le rate limit
+NEXT_PUBLIC_FREELANCER_EMAIL=     # identité affichée sur les devis PDF
+NEXT_PUBLIC_FREELANCER_SIRET=
+NEXT_PUBLIC_FREELANCER_PHONE=
+NEXT_PUBLIC_FREELANCER_ADDRESS=
 ```
 
 ## Commandes utiles
@@ -75,4 +91,4 @@ npm run lint       # ESLint
 
 1. **Middleware** : la réponse est reconstruite dans `setAll` pour que les cookies soient bien propagés. Ne pas simplifier ce pattern.
 2. **Rate limiting** : `lib/rate-limit.ts` utilise un store en mémoire (OK pour Vercel sans Redis, mais pas scalable).
-3. **PDF** : `@react-pdf/renderer` est utilisé pour générer les devis côté serveur — lourd, ne pas l'ajouter au bundle client.
+3. **PDF** : les devis sont générés **côté client**. `components/QuotePDF.tsx` est `'use client'` et `downloadQuotePDF()` appelle `pdf(...).toBlob()` dans le navigateur. `@react-pdf/renderer`, lourd, fait donc partie du bundle client de la page prospect (import statique via `QuoteGenerator`).

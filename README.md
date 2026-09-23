@@ -66,7 +66,7 @@ Attach PDFs, contracts, and signed quotes to any prospect file. Drag & drop uplo
 
 ### Follow-up tracking
 
-Auto-detection of stale prospects: 7 days without response after quote → first follow-up. 10 days → second. 14 days → urgent (flagged red).
+Auto-detection of stale prospects (`lib/followups.ts`), counted from the last contact (or, failing that, the last update): a prospect whose demo site was sent (`demo_generated`) with no reply for 7 days, or one already in its second follow-up (`followup_r2`) with no reply for 5 days, joins the follow-up queue. After 14 days without a reply it is flagged red.
 
 ### Model comparison
 
@@ -99,7 +99,7 @@ app/
 │   ├── linkedin/           GitHub mode + free topic mode, 4 tones
 │   ├── followups/          stale prospect detection
 │   └── stats/              pipeline metrics
-├── dashboard/              prospect list + 5 KPI cards
+├── dashboard/              prospect list + 6 KPI cards
 ├── prospects/[id]/         brief → quote → email → documents
 ├── chat/                   useChat with initialMessages from DB
 ├── emails/                 standalone email generator
@@ -174,8 +174,6 @@ __tests__/api/
 ├── brief-analyze.test.ts   5 tests — schema, edge cases, semantic rules
 └── email-generate.test.ts  8 tests — all 5 types, subject extraction, 400s
 ```
-
-For real LLM evaluation against the live model: `scripts/eval-brief.ts` (coming soon).
 
 ## Deploy your own
 

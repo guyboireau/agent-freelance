@@ -5,6 +5,15 @@
 > **Auditeur** : Claude Security Agent (analyse manuelle + scans statiques)  
 > **Scope** : Code source complet (Next.js 15 App Router, TypeScript, Supabase, Vercel)
 
+> **État au 2026-09-23.** Ce rapport est conservé pour l'historique : le résumé et les constats ci-dessous décrivent le code du 2026-05-15, pas celui de `main`.
+>
+> - **CRIT-01 (CSP) : corrigé.** `next.config.ts` pose une `Content-Security-Policy` depuis le 2026-06-06 (`cc82ff6`).
+> - **CRIT-02 (RLS) : en partie.** `database/rls-setup.sql` (2026-06-06) active la RLS sur les six tables. Ses politiques ne sont que des exemples commentés, et leur application sur la base ne se vérifie pas depuis le dépôt.
+> - **MED-03 (`getClientIp`) : documenté.** `x-forwarded-for` n'est pris en compte que si `TRUSTED_PROXY` est définie, ce que `.env.local.example` explique depuis #7.
+> - **LOW-01 (`tsconfig.tsbuildinfo`) : sans objet.** Le fichier n'apparaît dans aucun commit.
+> - **HIGH-03 et MED-07 : non vérifiables depuis le dépôt** (poste local, réponses d'erreur à l'exécution).
+> - **Tous les autres constats restent ouverts sur `main`.**
+
 ---
 
 ## Resume Executif

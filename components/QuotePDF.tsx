@@ -108,7 +108,7 @@ function QuotePDFDoc({ prospectName, company, email, phone, siret, address, line
             <Text style={styles.freelancerName}>{FREELANCER.name}</Text>
             <Text style={styles.freelancerDetail}>{FREELANCER.title}</Text>
             <Text style={styles.freelancerDetail}>{FREELANCER.email}</Text>
-            <Text style={styles.freelancerDetail}>{FREELANCER.website}</Text>
+            {FREELANCER.website && <Text style={styles.freelancerDetail}>{FREELANCER.website}</Text>}
             {FREELANCER.phone && <Text style={styles.freelancerDetail}>{FREELANCER.phone}</Text>}
             {FREELANCER.address && <Text style={styles.freelancerDetail}>{FREELANCER.address}</Text>}
             {FREELANCER.siret && <Text style={styles.freelancerDetail}>SIRET : {FREELANCER.siret}</Text>}
@@ -135,7 +135,7 @@ function QuotePDFDoc({ prospectName, company, email, phone, siret, address, line
           <View style={styles.clientSectionRight}>
             <Text style={styles.blockLabel}>Prestataire</Text>
             <Text style={styles.clientName}>{FREELANCER.name}</Text>
-            <Text style={styles.clientDetail}>TJM {FREELANCER.tjm}€ / jour</Text>
+            {FREELANCER.tjm !== null && <Text style={styles.clientDetail}>TJM {FREELANCER.tjm}€ / jour</Text>}
             <Text style={styles.clientDetail}>Durée : {duration_days} j. ouvrés</Text>
           </View>
         </View>
@@ -216,8 +216,13 @@ function QuotePDFDoc({ prospectName, company, email, phone, siret, address, line
         <View style={styles.footer}>
           <View style={styles.footerLine} />
           <Text style={styles.footerText}>
-            {FREELANCER.name} · {FREELANCER.email} · {FREELANCER.website}
-            {FREELANCER.siret ? ` · SIRET ${FREELANCER.siret}` : ''} · {FREELANCER.tva_mention}
+            {[
+              FREELANCER.name,
+              FREELANCER.email,
+              FREELANCER.website,
+              FREELANCER.siret && `SIRET ${FREELANCER.siret}`,
+              FREELANCER.tva_mention,
+            ].filter(Boolean).join(' · ')}
           </Text>
         </View>
 

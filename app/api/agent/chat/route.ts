@@ -4,10 +4,11 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { findSimilarProjects } from '@/lib/rag/search'
-import { FREELANCER, ACTIVE_PROJECTS } from '@/lib/freelancer'
+import { FREELANCER, TJM_LABEL } from '@/lib/freelancer'
+import { ACTIVE_PROJECTS } from '@/lib/active-projects'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
 
-const SYSTEM_PROMPT = `Tu es Jarvis, l'assistant commercial de ${FREELANCER.name}, développeur freelance (TJM ${FREELANCER.tjm}€/jour).
+const SYSTEM_PROMPT = `Tu es Jarvis, l'assistant commercial de ${FREELANCER.name}, développeur freelance (TJM ${TJM_LABEL}).
 
 ## Contexte métier
 - Stack principale : TypeScript · React / Next.js · React Native (Expo) · Supabase · Tailwind
@@ -15,7 +16,9 @@ const SYSTEM_PROMPT = `Tu es Jarvis, l'assistant commercial de ${FREELANCER.name
 - Conditions standard : ${FREELANCER.deposit_percent}% à la commande, ${100 - FREELANCER.deposit_percent}% à la livraison, ${FREELANCER.payment_terms}
 
 ## Projets actifs en cours
-${ACTIVE_PROJECTS.map((p) => `- **${p.name}** (${p.client}) — ${p.type} · ${p.stack}`).join('\n')}
+${ACTIVE_PROJECTS.length > 0
+  ? ACTIVE_PROJECTS.map((p) => `- **${p.name}** (${p.client}) — ${p.type} · ${p.stack}`).join('\n')
+  : '- (aucun projet renseigné)'}
 
 ## Tes capacités
 - Analyser des briefs clients et estimer en jours/€

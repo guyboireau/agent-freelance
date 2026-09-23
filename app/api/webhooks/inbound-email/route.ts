@@ -21,6 +21,7 @@ import { generateObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { TJM_LABEL, estimateHt, formatEstimate } from '@/lib/freelancer'
 
 const RequestSchema = z.object({
   from_name:  z.string().min(1),
@@ -41,7 +42,7 @@ const BriefAnalysisSchema = z.object({
 
 const SYSTEM_PROMPT = `Tu es un développeur freelance senior avec 8 ans d'expérience.
 Tu analyses des briefs clients (mails, messages LinkedIn, notes d'appel) pour en extraire les informations clés.
-TJM de référence : 350€/jour.
+TJM de référence : ${TJM_LABEL}.
 Sois pragmatique et honnête dans tes estimations. Mieux vaut surestimer légèrement que sous-estimer.
 Complexité : 1=landing page, 2=site vitrine, 3=webapp CRUD, 4=logique métier complexe, 5=architecture distribuée/IA.`
 
@@ -128,7 +129,7 @@ export async function POST(req: NextRequest) {
       project_type:   analysis.project_type,
       complexity:     analysis.complexity,
       estimated_days: analysis.estimated_days,
-      estimated_ht:   analysis.estimated_days * 350,
+      estimated_ht:   estimateHt(analysis.estimated_days),
       probable_stack: analysis.probable_stack.join(', '),
       unclear_points: analysis.unclear_points.join('\n• '),
       budget_signals: analysis.budget_signals.join('\n• '),
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest) {
     // Bloc texte prêt à coller dans le mail de notif Make.com ({{2.summary_block}})
     summary_block: [
       `📋 ${analysis.project_type.toUpperCase()} — Complexité ${analysis.complexity}/5`,
-      `⏱  Estimation : ${analysis.estimated_days}j · ${analysis.estimated_days * 350}€ HT`,
+      `⏱  Estimation : ${formatEstimate(analysis.estimated_days)}`,
       `🔧 Stack : ${analysis.probable_stack.join(', ')}`,
       '',
       analysis.summary,

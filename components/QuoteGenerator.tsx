@@ -57,7 +57,9 @@ export default function QuoteGenerator({
       }),
     })
     if (!res.ok) {
-      setError('Erreur lors de la génération')
+      // Affiche le message de l'API s'il y en a un (ex. 503 : TJM non configuré).
+      const payload: { error?: unknown } | null = await res.json().catch(() => null)
+      setError(typeof payload?.error === 'string' ? payload.error : 'Erreur lors de la génération')
       setLoading(false)
       return
     }

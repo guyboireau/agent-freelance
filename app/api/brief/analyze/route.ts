@@ -4,6 +4,7 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { TJM_LABEL } from '@/lib/freelancer'
 
 const RequestSchema = z.object({
   raw_text: z.string().min(20),
@@ -17,13 +18,13 @@ const BriefAnalysisSchema = z.object({
     .describe('Complexité de 1 (très simple) à 5 (très complexe)'),
   unclear_points: z.array(z.string()).describe('Points flous à clarifier avec le client'),
   budget_signals: z.array(z.string()).describe('Indices sur le budget : mots clés, comparaisons mentionnées, urgence'),
-  estimated_days: z.number().int().positive().describe('Estimation de jours de travail (TJM 350€)'),
+  estimated_days: z.number().int().positive().describe(`Estimation de jours de travail (TJM ${TJM_LABEL})`),
   summary: z.string().describe('Résumé du projet en 2-3 phrases, ton professionnel'),
 })
 
 const SYSTEM_PROMPT = `Tu es un développeur freelance senior avec 8 ans d'expérience.
 Tu analyses des briefs clients (mails, messages LinkedIn, notes d'appel) pour en extraire les informations clés.
-TJM de référence : 350€/jour.
+TJM de référence : ${TJM_LABEL}.
 Sois pragmatique et honnête dans tes estimations. Mieux vaut surestimer légèrement que sous-estimer.
 Pour la complexité : 1=landing page simple, 2=site vitrine, 3=webapp CRUD, 4=app avec logique métier complexe, 5=architecture distribuée/temps réel/IA.`
 

@@ -3,6 +3,7 @@ import { generateObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { getClientIp, rateLimit } from '@/lib/rate-limit'
+import { TJM_LABEL } from '@/lib/freelancer'
 
 const RequestSchema = z.object({
   raw_text: z.string().min(20),
@@ -20,7 +21,7 @@ const BriefAnalysisSchema = z.object({
 
 const SYSTEM_PROMPT = `Tu es un développeur freelance senior avec 8 ans d'expérience.
 Tu analyses des briefs clients pour en extraire les informations clés.
-TJM de référence : 350€/jour.
+TJM de référence : ${TJM_LABEL}.
 Pour la complexité : 1=landing page simple, 2=site vitrine, 3=webapp CRUD, 4=app avec logique métier complexe, 5=architecture distribuée/temps réel/IA.`
 
 export async function POST(req: NextRequest) {

@@ -77,7 +77,7 @@
         }
       },
       "mapper": {
-        "to": "boireauguy@gmail.com",
+        "to": "a-configurer@example.invalid",
         "subject": "🔔 Brief de {{1.from.name}} — {{2.data.analysis.project_type}} · {{2.data.analysis.estimated_days}}j · {{2.data.analysis.estimated_ht}}€ HT",
         "bodyType": "html",
         "content": "<p><strong>De :</strong> {{1.from.name}} &lt;{{1.from.email}}&gt;<br><strong>Objet :</strong> {{1.subject}}</p><hr><pre>{{2.data.summary_block}}</pre><hr><p><a href=\"{{2.data.prospect_url}}\">→ Ouvrir la fiche prospect</a></p>"

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import SidebarNav from '@/components/SidebarNav'
+import { FREELANCER } from '@/lib/freelancer'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
@@ -25,9 +26,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           <SidebarNav />
 
+          {/* Pas de TJM ici : ce layout enveloppe aussi /login, page publique. */}
           <div className="mt-auto px-3 pt-6 border-t" style={{ borderColor: '#f1f5f9' }}>
-            <p className="text-xs" style={{ color: '#94a3b8' }}>Guy Boireau</p>
-            <p className="text-xs" style={{ color: '#cbd5e1' }}>TJM 350€/j</p>
+            <p className="text-xs" style={{ color: '#94a3b8' }}>{FREELANCER.name}</p>
           </div>
         </aside>
 

@@ -71,10 +71,17 @@ NEXT_PUBLIC_APP_URL=              # URL publique, pour les liens des mails sorta
 # Optionnelles
 SITE_GENERATOR_WEBHOOK_URL=       # /api/pipeline/generate, sinon la route répond 503
 TRUSTED_PROXY=                    # non vide = x-forwarded-for pris en compte par le rate limit
-NEXT_PUBLIC_FREELANCER_EMAIL=     # identité affichée sur les devis PDF
+
+# Profil freelance : devis PDF et prompts (lib/freelancer.ts)
+NEXT_PUBLIC_FREELANCER_NAME=
+NEXT_PUBLIC_FREELANCER_TITLE=
+NEXT_PUBLIC_FREELANCER_EMAIL=
+NEXT_PUBLIC_FREELANCER_WEBSITE=
 NEXT_PUBLIC_FREELANCER_SIRET=
 NEXT_PUBLIC_FREELANCER_PHONE=
 NEXT_PUBLIC_FREELANCER_ADDRESS=
+NEXT_PUBLIC_FREELANCER_TJM=       # sans lui, /api/quotes/generate répond 503
+FREELANCER_ACTIVE_PROJECTS=       # JSON, serveur uniquement (lib/active-projects.ts)
 ```
 
 ## Commandes utiles
@@ -92,3 +99,4 @@ npm run lint       # ESLint
 1. **Middleware** : la réponse est reconstruite dans `setAll` pour que les cookies soient bien propagés. Ne pas simplifier ce pattern.
 2. **Rate limiting** : `lib/rate-limit.ts` utilise un store en mémoire (OK pour Vercel sans Redis, mais pas scalable).
 3. **PDF** : les devis sont générés **côté client**. `components/QuotePDF.tsx` est `'use client'` et `downloadQuotePDF()` appelle `pdf(...).toBlob()` dans le navigateur. `@react-pdf/renderer`, lourd, fait donc partie du bundle client de la page prospect (import statique via `QuoteGenerator`).
+4. **Dépôt public** : aucune donnée réelle dans le code (TJM, noms de clients, coordonnées, e-mail), ni dans les fixtures de `scripts/seed-demo.ts`. Le profil passe par les variables `NEXT_PUBLIC_FREELANCER_*` (inlinées dans le bundle client), les données internes par des variables serveur sans préfixe `NEXT_PUBLIC_`.

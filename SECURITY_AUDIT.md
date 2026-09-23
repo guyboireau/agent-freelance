@@ -188,7 +188,7 @@ if (origin && !allowedOrigins.includes(origin)) {
 ### [MED-02] Leak d'informations personnelles (PII) dans le bundle client
 
 **Fichier** : `lib/freelancer.ts` (lignes 1–23)  
-**Description** : L'objet `FREELANCER` expose par defaut l'email `boireauguy@gmail.com`, le SIRET, le telephone et l'adresse via des variables `NEXT_PUBLIC_*`. Ces champs sont injectes dans le bundle JavaScript client (visible dans l'onglet Sources du navigateur).  
+**Description** : L'objet `FREELANCER` expose par defaut une adresse email reelle (retiree du depot le 2026-09-23), le SIRET, le telephone et l'adresse via des variables `NEXT_PUBLIC_*`. Ces champs sont injectes dans le bundle JavaScript client (visible dans l'onglet Sources du navigateur).  
 **Impact** : Fuite de PII / informations d'identite professionnelle.  
 **Remediation** :
 - Ne pas prefixer par `NEXT_PUBLIC_` les champs sensibles ; les charger cote serveur uniquement.

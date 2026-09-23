@@ -35,7 +35,7 @@ Le projet couvre les développements front-end, l'intégration de Stripe et la m
 N'hésitez pas à me contacter si vous avez des questions.
 
 Cordialement,
-Guy Boireau`,
+Camille Exemple`,
     })
 
     const { POST } = await import('@/app/api/email/generate/route')

@@ -10,6 +10,10 @@ import path from 'path'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 
+// Taux des données de démo : le TJM configuré dans .env.local s'il existe,
+// sinon un taux fictif. Aucun TJM réel n'est écrit ici (dépôt public).
+const DEMO_TJM = Number(process.env.NEXT_PUBLIC_FREELANCER_TJM) || 500
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -25,8 +29,8 @@ const PAST_PROJECTS = [
     description: 'Refonte complète d\'un site e-commerce B2C pour une maison de gants de luxe. Catalogue produit, Stripe, espace compte client, intégration logistique.',
     stack: ['Next.js', 'TypeScript', 'Stripe', 'Supabase', 'Tailwind'],
     duration_days: 18,
-    daily_rate: 350,
-    total_ht: 6300,
+    daily_rate: DEMO_TJM,
+    total_ht: 18 * DEMO_TJM,
     delivered_at: '2025-11-15',
   },
   {
@@ -36,8 +40,8 @@ const PAST_PROJECTS = [
     description: 'Plateforme SaaS B2B de gestion de l\'onboarding employés. Workflow personnalisables, notifications, dashboard RH, rôles et permissions.',
     stack: ['React', 'NestJS', 'PostgreSQL', 'Supabase Auth', 'React Query'],
     duration_days: 28,
-    daily_rate: 350,
-    total_ht: 9800,
+    daily_rate: DEMO_TJM,
+    total_ht: 28 * DEMO_TJM,
     delivered_at: '2025-09-01',
   },
   {
@@ -47,8 +51,8 @@ const PAST_PROJECTS = [
     description: 'Application React Native pour livreurs et clients. Tracking GPS temps réel, notifications push, système de notation, paiements in-app.',
     stack: ['React Native', 'Expo', 'Supabase', 'Stripe', 'Google Maps API'],
     duration_days: 32,
-    daily_rate: 350,
-    total_ht: 11200,
+    daily_rate: DEMO_TJM,
+    total_ht: 32 * DEMO_TJM,
     delivered_at: '2025-06-20',
   },
   {
@@ -58,8 +62,8 @@ const PAST_PROJECTS = [
     description: 'Site vitrine institutionnel pour un cabinet notarial. Présentation des associés, blog juridique, formulaire de prise de RDV.',
     stack: ['Next.js', 'Tailwind', 'Supabase'],
     duration_days: 7,
-    daily_rate: 350,
-    total_ht: 2450,
+    daily_rate: DEMO_TJM,
+    total_ht: 7 * DEMO_TJM,
     delivered_at: '2025-12-10',
   },
   {
@@ -69,8 +73,8 @@ const PAST_PROJECTS = [
     description: 'API REST haute performance pour agrégation de données boursières. Authentification JWT, rate limiting, cache Redis, documentation Swagger.',
     stack: ['NestJS', 'PostgreSQL', 'Redis', 'TypeScript', 'Docker'],
     duration_days: 16,
-    daily_rate: 350,
-    total_ht: 5600,
+    daily_rate: DEMO_TJM,
+    total_ht: 16 * DEMO_TJM,
     delivered_at: '2025-07-30',
   },
   {
@@ -80,8 +84,8 @@ const PAST_PROJECTS = [
     description: 'MVP marketplace mettant en relation artisans locaux et particuliers. Profils vendeurs, système de commandes, messagerie, avis clients.',
     stack: ['Next.js', 'Supabase', 'Stripe Connect', 'Tailwind', 'Zod'],
     duration_days: 24,
-    daily_rate: 350,
-    total_ht: 8400,
+    daily_rate: DEMO_TJM,
+    total_ht: 24 * DEMO_TJM,
     delivered_at: '2025-10-05',
   },
 ]
@@ -142,14 +146,14 @@ const PROSPECTS: DemoProspect[] = [
       summary: 'Plateforme SaaS B2B pour artisans du bâtiment avec gestion de devis, suivi chantiers et portail client. Périmètre bien défini avec maquettes. Budget confortable.',
     },
     quote_lines: [
-      { label: 'Setup, architecture & auth multi-rôles', days: 3, unit_price: 350, total: 1050 },
-      { label: 'Module devis & facturation', days: 5, unit_price: 350, total: 1750 },
-      { label: 'Suivi chantier & notifications', days: 6, unit_price: 350, total: 2100 },
-      { label: 'Portail client (lecture seule)', days: 4, unit_price: 350, total: 1400 },
-      { label: 'Dashboard analytique', days: 3, unit_price: 350, total: 1050 },
-      { label: 'Tests, déploiement & doc', days: 3, unit_price: 350, total: 1050 },
+      { label: 'Setup, architecture & auth multi-rôles', days: 3, unit_price: DEMO_TJM, total: 3 * DEMO_TJM },
+      { label: 'Module devis & facturation', days: 5, unit_price: DEMO_TJM, total: 5 * DEMO_TJM },
+      { label: 'Suivi chantier & notifications', days: 6, unit_price: DEMO_TJM, total: 6 * DEMO_TJM },
+      { label: 'Portail client (lecture seule)', days: 4, unit_price: DEMO_TJM, total: 4 * DEMO_TJM },
+      { label: 'Dashboard analytique', days: 3, unit_price: DEMO_TJM, total: 3 * DEMO_TJM },
+      { label: 'Tests, déploiement & doc', days: 3, unit_price: DEMO_TJM, total: 3 * DEMO_TJM },
     ],
-    quote_total: 8400,
+    quote_total: 24 * DEMO_TJM,
     quote_status: 'accepted',
   },
   {
@@ -170,13 +174,13 @@ const PROSPECTS: DemoProspect[] = [
       summary: 'Plateforme e-commerce B2B pour revendeurs avec catalogue, tarifs différenciés et exports compta. Projet bien cadré, complexité modérée.',
     },
     quote_lines: [
-      { label: 'Catalogue produits & gestion tarifs par compte', days: 4, unit_price: 350, total: 1400 },
-      { label: 'Tunnel de commande B2B', days: 4, unit_price: 350, total: 1400 },
-      { label: 'Espace revendeur & historique commandes', days: 3, unit_price: 350, total: 1050 },
-      { label: 'Export CSV & intégrations compta', days: 2, unit_price: 350, total: 700 },
-      { label: 'Admin & déploiement', days: 2, unit_price: 350, total: 700 },
+      { label: 'Catalogue produits & gestion tarifs par compte', days: 4, unit_price: DEMO_TJM, total: 4 * DEMO_TJM },
+      { label: 'Tunnel de commande B2B', days: 4, unit_price: DEMO_TJM, total: 4 * DEMO_TJM },
+      { label: 'Espace revendeur & historique commandes', days: 3, unit_price: DEMO_TJM, total: 3 * DEMO_TJM },
+      { label: 'Export CSV & intégrations compta', days: 2, unit_price: DEMO_TJM, total: 2 * DEMO_TJM },
+      { label: 'Admin & déploiement', days: 2, unit_price: DEMO_TJM, total: 2 * DEMO_TJM },
     ],
-    quote_total: 5250,
+    quote_total: 15 * DEMO_TJM,
     quote_status: 'sent',
   },
   {
@@ -203,7 +207,7 @@ const PROSPECTS: DemoProspect[] = [
       probable_stack: ['Next.js', 'Tailwind', 'Framer Motion'],
       complexity: 2,
       unclear_points: ['Budget de 800€ incompatible avec les attentes'],
-      budget_signals: ['Budget déclaré : 800€ — sous le seuil rentable (TJM 350€)'],
+      budget_signals: [`Budget déclaré : 800€ — sous le seuil rentable (TJM ${DEMO_TJM}€)`],
       estimated_days: 5,
       summary: 'Site agence avec animations. Budget incompatible avec les attentes. Projet refusé.',
     },
@@ -230,12 +234,12 @@ const PROSPECTS: DemoProspect[] = [
       summary: 'ATS interne léger pour cabinet de recrutement. Pipeline candidats, suivi entretiens et reporting client automatisé. Périmètre clair.',
     },
     quote_lines: [
-      { label: 'Pipeline candidats & fiches de poste', days: 3, unit_price: 350, total: 1050 },
-      { label: 'Suivi entretiens & notes', days: 2, unit_price: 350, total: 700 },
-      { label: 'Comptes-rendus automatiques (email)', days: 2, unit_price: 350, total: 700 },
-      { label: 'Déploiement & onboarding équipe', days: 2, unit_price: 350, total: 700 },
+      { label: 'Pipeline candidats & fiches de poste', days: 3, unit_price: DEMO_TJM, total: 3 * DEMO_TJM },
+      { label: 'Suivi entretiens & notes', days: 2, unit_price: DEMO_TJM, total: 2 * DEMO_TJM },
+      { label: 'Comptes-rendus automatiques (email)', days: 2, unit_price: DEMO_TJM, total: 2 * DEMO_TJM },
+      { label: 'Déploiement & onboarding équipe', days: 2, unit_price: DEMO_TJM, total: 2 * DEMO_TJM },
     ],
-    quote_total: 3150,
+    quote_total: 9 * DEMO_TJM,
     quote_status: 'sent',
   },
   {

@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { safeRedirectPath } from '@/lib/safe-redirect'
 
 export default function LoginForm({ nextPath }: { nextPath: string }) {
   const router = useRouter()
@@ -30,7 +31,8 @@ export default function LoginForm({ nextPath }: { nextPath: string }) {
       return
     }
 
-    router.replace(nextPath)
+    // Déjà validé par la page, revalidé ici : c'est ce composant qui navigue.
+    router.replace(safeRedirectPath(nextPath))
     router.refresh()
   }
 
